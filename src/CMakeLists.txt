@@ -14,13 +14,13 @@ set(SRCS
 	qfiber.cpp
 	)
 set(HEADERS
-	qtserverglobal.h
-	qpromise.h
-	qfiber.h
+	../include/qtserverglobal.h
+	../include/qpromise.h
+	../include/qfiber.h
 	)
 
 include_directories("../include" "${CMAKE_CURRENT_BINARY_DIR}/3rdparty/libcoro")
-add_executable(testapp test.cpp ${SRCS})
+add_executable(testapp test.cpp ${SRCS} ${HEADERS})
 
-target_link_libraries(testapp Qt5::Core)
+target_link_libraries(testapp Qt5::Core coro)
 

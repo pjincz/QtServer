@@ -2,6 +2,10 @@
 
 QT_BEGIN_NAMESPACE
 
+QPromiseBase::QPromiseBase()
+{
+}
+
 void QPromiseBase::fullfill(const QVariant & v)
 {
 	emit fullfilled(v);

@@ -1,6 +1,7 @@
 #include <qfiber.h>
 #include <qpromise.h>
 #include "3rdparty/libcoro/coro.h"
+#include "stdio.h"
 
 QT_BEGIN_NAMESPACE
 
@@ -43,6 +44,7 @@ static QFiberGlobal * global()
 
 void coro_body(void * arg)
 {
+	printf("initialize coro...\n");
 	QFiberPrivate * d = (QFiberPrivate *)arg;
 	// initialized
 	coro_transfer(&d->ctx, &global()->mainctx);
@@ -62,14 +64,16 @@ void coro_body(void * arg)
 
 QFiber::QFiber(FIBER_ENTRY entry, const QVariant & arg)
 {
+	printf("construct...\n");
 	d = new QFiberPrivate;
-	d->entry = NULL;
+	d->entry = entry;
 	d->arg = arg;
 	coro_stack_alloc(&d->stack, 0);
-	coro_create(&d->ctx, coro_body, NULL, d->stack.sptr, d->stack.ssze);
+	coro_create(&d->ctx, coro_body, d, d->stack.sptr, d->stack.ssze);
 
 	// transfer to initialize
 	coro_transfer(&global()->mainctx, &d->ctx);
+	printf("initialized...\n");
 
 	resume(QVariant(), false);
 }
@@ -78,6 +82,7 @@ QFiber::~QFiber()
 {
 	coro_destroy(&d->ctx);
 	coro_stack_free(&d->stack);
+	printf("done...\n");
 }
 
 void QFiber::resume(const QVariant & passin, bool rejected)
@@ -114,6 +119,21 @@ void QFiber::promise_rejected(const QVariant & var)
 	Q_ASSERT(qobject_cast<QPromiseBase*>(sender()));
 	sender()->deleteLater();
 	resume(var, true);
+}
+
+QVariant QFiber::yield_base(QPromiseBase * promise)
+{
+	Q_ASSERT(global()->current);
+
+	if (!promise) 
+		return QVariant();
+
+	QFiberGlobal * g = global();
+	g->promise = promise;
+
+	coro_transfer(&g->current->ctx, &g->mainctx);
+
+	return g->passin;
 }
 
 QT_END_NAMESPACE

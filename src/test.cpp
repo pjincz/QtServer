@@ -24,13 +24,16 @@ QPromise<int> * sleep(int n)
 void myfiber(QVariant v)
 {
 	printf("hello\n");
-	QFiber::yield(sleep(1000));
+	int x = QFiber::yield(sleep(1000));
+	printf("%d\n", x);
 	printf("world\n");
 }
 
-int main(int argc, char * argv[]) {
+int main(int argc, char * argv[])
+{
 	QCoreApplication app(argc, argv);
 
+	printf("begin...\n");
 	new QFiber(myfiber);
 
 	app.exec();
