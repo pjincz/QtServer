@@ -1,7 +1,5 @@
 cmake_minimum_required(VERSION 2.8.11)
 
-project(QtServer)
-
 add_subdirectory(3rdparty)
 
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
@@ -19,8 +17,9 @@ set(HEADERS
 	../include/qfiber.h
 	)
 
-include_directories("../include" "${CMAKE_CURRENT_BINARY_DIR}/3rdparty/libcoro")
-add_executable(testapp test.cpp ${SRCS} ${HEADERS})
+include_directories("${CMAKE_CURRENT_BINARY_DIR}/3rdparty/libcoro")
 
-target_link_libraries(testapp Qt5::Core coro)
+add_library(QtServer STATIC ${SRCS} ${HEADERS})
+
+target_link_libraries(QtServer Qt5::Core coro)
 

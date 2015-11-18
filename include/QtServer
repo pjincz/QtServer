@@ -1,0 +1,11 @@
+#include "qtserverglobal.h"
+
+#include "qfiber.h"
+#include "qpromise.h"
+
+#include "qhttpcontext.h"
+#include "qhttpheaders.h"
+#include "qhttprequest.h"
+#include "qhttpresponse.h"
+
+#include "qhttpservice.h"
