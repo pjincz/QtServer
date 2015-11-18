@@ -5,6 +5,45 @@
 class QHttpService;
 class QHttpConnection;
 
+class QHttpHeaders : public QHash<QString, QString>
+{
+public:
+	typedef QHash<QString, QString> super_type;
+	typedef super_type::const_iterator const_iterator;
+	typedef super_type::iterator iterator;
+	typedef QString T;
+	typedef QString Key;
+public:
+	const_iterator constFind(const Key & key) const
+	{ return super_type::constFind(key.toLower()); }
+	bool contains(const Key & key) const
+	{ return super_type::contains(key.toLower()); }
+	int count(const Key & key) const
+	{ return super_type::count(key.toLower()); }
+	iterator find(const Key & key)
+	{ return super_type::find(key.toLower()); }
+	const_iterator find(const Key & key) const
+	{ return super_type::find(key.toLower()); }
+	iterator insert(const Key & key, const T & value)
+	{ return super_type::insert(key.toLower(), value); }
+	iterator insertMulti(const Key & key, const T & value)
+	{ return super_type::insertMulti(key.toLower(), value); }
+	int remove(const Key & key)
+	{ return super_type::remove(key.toLower()); }
+	T take(const Key & key)
+	{ return super_type::take(key.toLower()); }
+	const T value(const Key & key) const
+	{ return super_type::value(key.toLower()); }
+	const T value(const Key & key, const T & defaultValue) const
+	{ return super_type::value(key.toLower(), defaultValue); }
+	QList<T> values(const Key & key) const
+	{ return super_type::values(key.toLower()); }
+	T & operator[](const Key & key)
+	{ return super_type::operator[](key.toLower()); }
+	const T operator[](const Key & key) const
+	{ return super_type::operator[](key.toLower()); }
+};
+
 class QHttpRequest
 {
 public:
@@ -49,12 +88,12 @@ public:
 			int colon_pos = lines[i].indexOf(':');
 			if (colon_pos != -1)
 			{
-				this->headers.insert(lines[i].left(colon_pos).toLower(), lines[i].mid(colon_pos + 1).trimmed());
+				this->headers.insert(lines[i].left(colon_pos), lines[i].mid(colon_pos + 1).trimmed());
 			}
 		}
 	}
 public:
-	QHash<QString, QString> headers;
+	QHttpHeaders headers;
 	QString method;
 	QUrl originalUrl;
 	QString protocol;
@@ -62,6 +101,34 @@ public:
 
 class QHttpResponse
 {
+public:
+	QHttpHeaders headers;
+	QByteArray body;
+	int status;
+
+	void clear()
+	{
+		headers.clear();
+		headers["Content-Type"] = "text/plain";
+		headers["Connection"] = "Keep-Alive";
+		body = QByteArray();
+		status = 200;
+	}
+
+	QByteArray serialize()
+	{
+		//qDebug() << "serialize()";
+		return "HTTP/1.1 200 OK\r\nX-Powered-By: Express\r\nContent-Type: text/html; charset=utf-8\r\nContent-Length: 11\r\nDate: Tue, 17 Nov 2015 15:37:36 GMT\r\nConnection: close\r\n\r\n" + body;
+		
+		headers["Content-Length"] = QString::number(body.length());
+		QByteArray r = QByteArray("HTTP/1.1 ") + QByteArray::number(status) + QByteArray(" OK\r\n");
+		for (QHttpHeaders::iterator it = headers.begin(); it != headers.end(); ++it)
+		{
+			r += it.key().toLatin1() + ": " + it.value() + "\r\n";
+		}
+		r += "\r\n";
+		return r + body;
+	}
 };
 
 class QHttpContext
@@ -90,10 +157,11 @@ public:
 	// TODO
 	void invoke(QHttpRequest & req, QHttpResponse & res, QHttpContext & ctx)
 	{
-		qDebug() << req.method;
-		qDebug() << req.originalUrl;
-		qDebug() << req.protocol;
-		qDebug() << req.headers;
+		//qDebug() << req.method;
+		//qDebug() << req.originalUrl;
+		//qDebug() << req.protocol;
+		//qDebug() << req.headers;
+		res.body = "hello world";
 	}
 
 	void listen(int port)
@@ -162,9 +230,13 @@ protected:
 			}
 			if (m_status == PENDING_INVOKE)
 			{
-				m_res = QHttpResponse();
+				m_res.clear();
 				m_status = PENDING_RESPONSE;
 				m_service->invoke(m_req, m_res, m_ctx);
+				m_socket->write(m_res.serialize());
+				m_socket->close();
+				return;
+				m_status = PENDING_HEADER;
 			}
 			if (m_status == PENDING_RESPONSE)
 			{
