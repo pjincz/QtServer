@@ -8,4 +8,4 @@ find_package(Qt5Network)
 
 add_executable(basic main.cpp)
 
-target_link_libraries(basic Qt5::Core Qt5::Network)
+target_link_libraries(basic Qt5::Core Qt5::Network QtServer)
