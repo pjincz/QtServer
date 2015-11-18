@@ -92,7 +92,7 @@ private:
 };
 
 QHttpService::QHttpService(QObject * parent)
-	: QObject(parent)
+	: QHttpRouter(parent)
 {
 }
 
@@ -113,16 +113,6 @@ void QHttpService::onNewConnection()
 	{
 		new QHttpConnection(this, socket);
 	}
-}
-
-// TODO
-void QHttpService::invoke(QHttpRequest & req, QHttpResponse & res, QHttpContext & ctx)
-{
-	//qDebug() << req.method;
-	//qDebug() << req.originalUrl;
-	//qDebug() << req.protocol;
-	//qDebug() << req.headers;
-	res.body = "hello world";
 }
 
 QT_END_NAMESPACE
