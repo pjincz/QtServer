@@ -9,15 +9,19 @@
 
 QT_BEGIN_NAMESPACE
 
+#if __cplusplus >= 201103
 #define LAMBDA_IMPLICT_CONVERTION_WORKAROUND(func)																								\
 	template<typename T0 = QHttpHandlerRef, typename T1 = QHttpHandlerRef, typename T2 = QHttpHandlerRef, typename T3 = QHttpHandlerRef,		\
 		     typename T4 = QHttpHandlerRef, typename T5 = QHttpHandlerRef, typename T6 = QHttpHandlerRef, typename T7 = QHttpHandlerRef>		\
-	inline void func(const T0 & h0 = T0(), const T1 & h1 = T1(), const T2 & h2 = T2(), const T3 & h3 = T3(),									\
-					const T4 & h4 = T4(), const T5 & h5 = T5(), const T6 & h6 = T6(), const T7 & h7 = T7())										\
+	inline void func(T0 && h0 = T0(), T1 && h1 = T1(), T2 && h2 = T2(), T3 && h3 = T3(),														\
+					 T4 && h4 = T4(), T5 && h5 = T5(), T6 && h6 = T6(), T7 && h7 = T7())														\
 	{																																			\
 		func(QHttpHandlerRef(h0), QHttpHandlerRef(h1), QHttpHandlerRef(h2), QHttpHandlerRef(h3),												\
 			QHttpHandlerRef(h4), QHttpHandlerRef(h5), QHttpHandlerRef(h6), QHttpHandlerRef(h7));												\
 	}
+#else
+#define LAMBDA_IMPLICT_CONVERTION_WORKAROUND(func)
+#endif
 
 class QHttpRouter : public QObject
 {

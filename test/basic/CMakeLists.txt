@@ -3,6 +3,8 @@ cmake_minimum_required(VERSION 2.8.11)
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 set(CMAKE_AUTOMOC ON)
 
+set(CMAKE_CXX_FLAGS "-std=c++11")
+
 find_package(Qt5Core)
 find_package(Qt5Network)
 

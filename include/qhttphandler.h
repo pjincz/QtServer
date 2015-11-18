@@ -6,8 +6,6 @@
 #include "qhttpresponse.h"
 #include "qhttpcontext.h"
 
-#include <functional>
-
 QT_BEGIN_NAMESPACE
 
 typedef void FUNCTION_HANDLER_SIGN1(QHttpRequest & req, QHttpResponse & res);
@@ -29,7 +27,6 @@ public:
 	QHttpHandlerRef(QHttpHandler * h);
 	QHttpHandlerRef(const char * path);
 	QHttpHandlerRef(FUNCTION_HANDLER_SIGN1);
-	//QHttpHandlerRef(std::function<FUNCTION_HANDLER_SIGN1> lambda);
 
 public:
 	inline bool filtered()
