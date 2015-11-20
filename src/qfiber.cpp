@@ -81,6 +81,8 @@ QFiber::~QFiber()
 {
 	coro_destroy(&d->ctx);
 	coro_stack_free(&d->stack);
+
+	delete d;
 }
 
 void QFiber::resume(const QVariant & passin, bool rejected)
