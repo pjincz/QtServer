@@ -1,5 +1,3 @@
-release memory after connection closed
-
 pettify response header
 
 http 1.1 keep alive support
@@ -10,4 +8,4 @@ post
 
 fiber
 
-
+deal error on connection

@@ -13,13 +13,15 @@ public:
 		PENDING_BODY,
 		PENDING_INVOKE,
 		PENDING_RESPONSE,
-		PENDING_DESTORY
+		PENDING_DESTROY
 	};
 public:
 	QHttpConnection(QHttpService * service, QTcpSocket * socket)
 		: QObject(service), m_service(service), m_socket(socket), m_status(PENDING_HEADER)
 	{
+		socket->setParent(this);
 		connect(socket, SIGNAL(readyRead()), this, SLOT(onData()));
+		connect(socket, SIGNAL(disconnected()), this, SLOT(onDisconnected()));
 		m_ctx.req = &m_req;
 		m_ctx.res = &m_res;
 	}
@@ -52,12 +54,22 @@ protected:
 				QByteArray header = m_cache.left(x);
 				m_cache = m_cache.mid(x + l);
 				m_req.parse(header);
-				m_status = PENDING_INVOKE;
-				//m_status = m_req.headers["Content-Length"] ? PENDING_BODY : PENDING_RESPONSE;
+				//m_status = PENDING_INVOKE;
+				m_status = m_req.headers.contains("Content-Length") ? PENDING_BODY : PENDING_INVOKE;
 			}
 			if (m_status == PENDING_BODY)
 			{
-				// TODO
+				int l = m_req.headers["Content-Length"].toInt();
+				if (m_cache.length() >= l)
+				{
+					m_req.body = m_cache.left(l);
+					m_cache = m_cache.mid(l);
+					m_status = PENDING_INVOKE;
+				}
+				else
+				{
+					return;
+				}
 			}
 			if (m_status == PENDING_INVOKE)
 			{
@@ -65,8 +77,10 @@ protected:
 				m_status = PENDING_RESPONSE;
 				m_service->invoke(m_ctx);
 				m_socket->write(m_res.serialize());
-				m_socket->close();
-				return;
+				if (m_req.protocol == "HTTP/1.0")
+				{
+					m_socket->close();
+				}
 				m_status = PENDING_HEADER;
 			}
 			if (m_status == PENDING_RESPONSE)
@@ -81,6 +95,17 @@ protected slots:
 	{
 		m_cache += m_socket->readAll();
 		goon();
+	}
+	void onDisconnected()
+	{
+		if (m_status == PENDING_RESPONSE)
+		{
+			m_status = PENDING_DESTROY;
+		}
+		else
+		{
+			deleteLater();
+		}
 	}
 
 private:

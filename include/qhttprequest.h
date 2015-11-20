@@ -19,6 +19,7 @@ public:
 	QString method;
 	QUrl url;
 	QString protocol;
+	QByteArray body;
 };
 
 QT_END_NAMESPACE

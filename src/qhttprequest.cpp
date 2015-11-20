@@ -48,6 +48,8 @@ void QHttpRequest::parse(const QByteArray & a)
 			this->headers.insert(lines[i].left(colon_pos), lines[i].mid(colon_pos + 1).trimmed());
 		}
 	}
+
+	this->body = QByteArray();
 }
 
 QT_END_NAMESPACE
