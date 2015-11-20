@@ -3,6 +3,9 @@
 
 QT_BEGIN_NAMESPACE
 
+class QHttpRequest;
+class QHttpResponse;
+
 class QHttpContext
 {
 public:
@@ -10,6 +13,10 @@ public:
 
 	virtual void next();
 	virtual void skip();
+
+public:
+	QHttpRequest * req;
+	QHttpResponse * res;
 };
 
 QT_END_NAMESPACE

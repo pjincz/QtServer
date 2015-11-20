@@ -17,7 +17,7 @@ public:
 public:
 	QHttpHeaders headers;
 	QString method;
-	QUrl originalUrl;
+	QUrl url;
 	QString protocol;
 };
 

@@ -13,11 +13,17 @@ typedef void FUNCTION_HANDLER_SIGN1(QHttpRequest & req, QHttpResponse & res);
 class QHttpHandler
 {
 public:
+	enum {
+		NOT_A_FILTER = -1,
+		FILTER_THROUGH = 0,
+		FILTER_FILTERED = 1,
+	};
+public:
 	virtual ~QHttpHandler();
 
 public:
-	virtual bool filtered();
-	virtual void invoke(QHttpRequest & req, QHttpResponse & res, QHttpContext & ctx);
+	virtual int filter(QHttpContext & ctx);
+	virtual void invoke(QHttpContext & ctx);
 };
 
 class QHttpHandlerRef : public QSharedPointer<QHttpHandler>
@@ -29,13 +35,13 @@ public:
 	QHttpHandlerRef(FUNCTION_HANDLER_SIGN1 func);
 
 public:
-	inline bool filtered()
+	inline int filter(QHttpContext & ctx)
 	{
-		return data()->filtered();
+		return data()->filter(ctx);
 	}
-	inline void invoke(QHttpRequest & req, QHttpResponse & res, QHttpContext & ctx)
+	inline void invoke(QHttpContext & ctx)
 	{
-		data()->invoke(req, res, ctx);
+		data()->invoke(ctx);
 	}
 };
 
@@ -45,7 +51,10 @@ public:
 	QHttpHandler_UrlFilter(const char * exp);
 
 public:
-	virtual bool filtered();
+	virtual int filter(QHttpContext & ctx);
+
+private:
+	QString m_urlexp;
 };
 
 class QHttpHandler_MethodFilter : public QHttpHandler
@@ -54,7 +63,10 @@ public:
 	QHttpHandler_MethodFilter(const char * method);
 
 public:
-	virtual bool filtered();
+	virtual int filter(QHttpContext & ctx);
+
+private:
+	QString m_method;
 };
 
 class QHttpHandler_Method1 : public QHttpHandler
@@ -63,7 +75,10 @@ public:
 	QHttpHandler_Method1(FUNCTION_HANDLER_SIGN1 func);
 
 public:
-	virtual void invoke(QHttpRequest & req, QHttpResponse & res, QHttpContext & ctx);
+	virtual void invoke(QHttpContext & ctx);
+
+private:
+	FUNCTION_HANDLER_SIGN1 * m_func;
 };
 
 QT_END_NAMESPACE

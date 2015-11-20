@@ -20,6 +20,8 @@ public:
 		: QObject(service), m_service(service), m_socket(socket), m_status(PENDING_HEADER)
 	{
 		connect(socket, SIGNAL(readyRead()), this, SLOT(onData()));
+		m_ctx.req = &m_req;
+		m_ctx.res = &m_res;
 	}
 
 protected:
@@ -61,7 +63,7 @@ protected:
 			{
 				m_res.reset();
 				m_status = PENDING_RESPONSE;
-				m_service->invoke(m_req, m_res, m_ctx);
+				m_service->invoke(m_ctx);
 				m_socket->write(m_res.serialize());
 				m_socket->close();
 				return;

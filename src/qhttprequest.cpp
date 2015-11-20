@@ -36,8 +36,8 @@ void QHttpRequest::parse(const QByteArray & a)
 	}
 
 	QStringList first_line = lines[0].split(' ');
-	this->method = first_line[0];
-	this->originalUrl = first_line[1];
+	this->method = first_line[0].toUpper();
+	this->url = first_line[1];
 	this->protocol = first_line[2];
 
 	for (int i = 1; i < lines.length(); ++i)

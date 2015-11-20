@@ -39,7 +39,7 @@ QT_BEGIN_NAMESPACE
 typedef QVector<QHttpHandlerRef> QHttpHandlerSet;
 typedef QVector<QHttpHandlerSet> QHttpHandlerSetChain;
 
-class QHttpRouter : public QObject
+class QHttpRouter : public QObject, QHttpHandler
 {
 	Q_OBJECT
 public:
@@ -55,7 +55,7 @@ public:
 
 	DECLARE_METHOD_METHOD(get);
 public:
-	virtual void invoke(QHttpRequest & req, QHttpResponse & res, QHttpContext & ctx);
+	virtual void invoke(QHttpContext & ctx);
 
 private:
 	QHttpHandlerSetChain m_hsc;
