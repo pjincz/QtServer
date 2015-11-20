@@ -1,6 +1,7 @@
 #include <QTcpServer>
 #include <QTcpSocket>
 #include <qhttpservice.h>
+#include <qfiber.h>
 
 QT_BEGIN_NAMESPACE
 
@@ -24,6 +25,7 @@ public:
 		connect(socket, SIGNAL(disconnected()), this, SLOT(onDisconnected()));
 		m_ctx.req = &m_req;
 		m_ctx.res = &m_res;
+		m_ctx.service = service;
 	}
 
 protected:
@@ -75,19 +77,24 @@ protected:
 			{
 				m_res.reset();
 				m_status = PENDING_RESPONSE;
-				m_service->invoke(m_ctx);
-				m_socket->write(m_res.serialize());
-				if (m_req.protocol == "HTTP/1.0")
-				{
-					m_socket->close();
-				}
-				m_status = PENDING_HEADER;
+				launchInFiber();
 			}
 			if (m_status == PENDING_RESPONSE)
 			{
 				return;
 			}
 		}
+	}
+	void launchInFiber()
+	{
+		QFiber * f = new QFiber(fiberEntry, QVariant::fromValue((void*)&m_ctx));
+		connect(f, SIGNAL(done()), this, SLOT(onFiberDone()));
+		f->run();
+	}
+	static void fiberEntry(QVariant v)
+	{
+		QHttpContext * ctx = (QHttpContext *)v.value<void *>();
+		ctx->service->invoke(*ctx);
 	}
 
 protected slots:
@@ -105,6 +112,23 @@ protected slots:
 		else
 		{
 			deleteLater();
+		}
+	}
+	void onFiberDone()
+	{
+		if (m_status == PENDING_DESTROY)
+		{
+			deleteLater();
+		}
+		else
+		{
+			m_socket->write(m_res.serialize());
+			if (m_req.protocol == "HTTP/1.0")
+			{
+				m_socket->close();
+			}
+			m_status = PENDING_HEADER;
+			goon();
 		}
 	}
 

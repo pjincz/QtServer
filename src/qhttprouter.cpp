@@ -1,4 +1,5 @@
 #include <qhttprouter.h>
+#include <qhttpservice.h>
 
 QT_BEGIN_NAMESPACE
 
@@ -32,6 +33,14 @@ void QHttpRouter::invoke(QHttpContext & ctx)
 	QHttpContext ctx2;
 	ctx2.req = ctx.req;
 	ctx2.res = ctx.res;
+	if (QHttpService * s = qobject_cast<QHttpService *>(this))
+	{
+		ctx2.service = s;
+	}
+	else
+	{
+		ctx2.service = ctx.service;
+	}
 	ctx2.chain = &m_hsc;
 
 	ctx2.next();

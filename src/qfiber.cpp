@@ -1,7 +1,6 @@
 #include <qfiber.h>
 #include <qpromise.h>
 #include "3rdparty/libcoro/coro.h"
-#include "stdio.h"
 
 QT_BEGIN_NAMESPACE
 
@@ -44,7 +43,6 @@ static QFiberGlobal * global()
 
 void coro_body(void * arg)
 {
-	printf("initialize coro...\n");
 	QFiberPrivate * d = (QFiberPrivate *)arg;
 	// initialized
 	coro_transfer(&d->ctx, &global()->mainctx);
@@ -64,7 +62,6 @@ void coro_body(void * arg)
 
 QFiber::QFiber(FIBER_ENTRY entry, const QVariant & arg)
 {
-	printf("construct...\n");
 	d = new QFiberPrivate;
 	d->entry = entry;
 	d->arg = arg;
@@ -73,8 +70,10 @@ QFiber::QFiber(FIBER_ENTRY entry, const QVariant & arg)
 
 	// transfer to initialize
 	coro_transfer(&global()->mainctx, &d->ctx);
-	printf("initialized...\n");
+}
 
+void QFiber::run()
+{
 	resume(QVariant(), false);
 }
 
@@ -82,7 +81,6 @@ QFiber::~QFiber()
 {
 	coro_destroy(&d->ctx);
 	coro_stack_free(&d->stack);
-	printf("done...\n");
 }
 
 void QFiber::resume(const QVariant & passin, bool rejected)
@@ -103,6 +101,7 @@ void QFiber::resume(const QVariant & passin, bool rejected)
 	}
 	else
 	{
+		emit done();
 		deleteLater();
 	}
 }

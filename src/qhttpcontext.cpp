@@ -3,7 +3,7 @@
 QT_BEGIN_NAMESPACE
 
 QHttpContext::QHttpContext()
-	: req(0), res(0), chain(0), i(0), j(0)
+	: req(0), res(0), service(0), chain(0), i(0), j(0)
 {
 }
 

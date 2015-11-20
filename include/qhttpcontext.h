@@ -8,6 +8,7 @@ QT_BEGIN_NAMESPACE
 
 class QHttpRequest;
 class QHttpResponse;
+class QHttpService;
 
 typedef QVector<QHttpHandlerRef> QHttpHandlerSet;
 typedef QVector<QHttpHandlerSet> QHttpHandlerSetChain;
@@ -23,6 +24,7 @@ public:
 public:
 	QHttpRequest * req;
 	QHttpResponse * res;
+	QHttpService * service;
 
 	const QHttpHandlerSetChain * chain;
 	int i, j;
