@@ -1,6 +1,7 @@
 #ifndef QHTTPROUTER_H
 #define QHTTPROUTER_H
 
+#include "qtserverglobal.h"
 #include <QtCore/QObject>
 #include <QtCore/QVector>
 #include "qhttprequest.h"

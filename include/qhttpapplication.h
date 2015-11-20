@@ -1,6 +1,7 @@
 #ifndef QHTTPAPPLICATION_H
 #define QHTTPAPPLICATION_H
 
+#include "qtserverglobal.h"
 #include <QCoreApplication>
 #include "qhttpservice.h"
 

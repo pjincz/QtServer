@@ -1,6 +1,7 @@
 #ifndef QHTTPCONTEXT_H
 #define QHTTPCONTEXT_H
 
+#include "qtserverglobal.h"
 #include <qhttphandler.h>
 
 QT_BEGIN_NAMESPACE

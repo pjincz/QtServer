@@ -1,6 +1,7 @@
 #ifndef QHTTPSERVICE_H
 #define QHTTPSERVICE_H
 
+#include "qtserverglobal.h"
 #include "qhttprouter.h"
 
 QT_BEGIN_NAMESPACE
