@@ -1,4 +1,6 @@
 #include <qhttphandler.h>
+#include <qhttpcontext.h>
+#include <qhttprequest.h>
 
 QT_BEGIN_NAMESPACE
 

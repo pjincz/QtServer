@@ -27,5 +27,15 @@ void QHttpRouter::use(QHttpHandlerRef h0, QHttpHandlerRef h1,
 	m_hsc.push_back(s);
 }
 
+void QHttpRouter::invoke(QHttpContext & ctx)
+{
+	QHttpContext ctx2;
+	ctx2.req = ctx.req;
+	ctx2.res = ctx.res;
+	ctx2.chain = &m_hsc;
+
+	ctx2.next();
+}
+
 QT_END_NAMESPACE
 

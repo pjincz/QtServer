@@ -2,11 +2,12 @@
 #define QHTTPHANDER_H
 
 #include <QSharedPointer>
-#include "qhttprequest.h"
-#include "qhttpresponse.h"
-#include "qhttpcontext.h"
 
 QT_BEGIN_NAMESPACE
+
+class QHttpContext;
+class QHttpRequest;
+class QHttpResponse;
 
 typedef void FUNCTION_HANDLER_SIGN1(QHttpRequest & req, QHttpResponse & res);
 

@@ -36,9 +36,6 @@ QT_BEGIN_NAMESPACE
 	LAMBDA_IMPLICT_CONVERTION_WORKAROUND(method)
 
 
-typedef QVector<QHttpHandlerRef> QHttpHandlerSet;
-typedef QVector<QHttpHandlerSet> QHttpHandlerSetChain;
-
 class QHttpRouter : public QObject, QHttpHandler
 {
 	Q_OBJECT
