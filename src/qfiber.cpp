@@ -44,9 +44,7 @@ static QFiberGlobal * global()
 void coro_body(void * arg)
 {
 	QFiberPrivate * d = (QFiberPrivate *)arg;
-	// initialized
-	coro_transfer(&d->ctx, &global()->mainctx);
-	
+
 	// working
 	try
 	{
@@ -67,9 +65,6 @@ QFiber::QFiber(FIBER_ENTRY entry, const QVariant & arg)
 	d->arg = arg;
 	coro_stack_alloc(&d->stack, 0);
 	coro_create(&d->ctx, coro_body, d, d->stack.sptr, d->stack.ssze);
-
-	// transfer to initialize
-	coro_transfer(&global()->mainctx, &d->ctx);
 }
 
 void QFiber::run()
