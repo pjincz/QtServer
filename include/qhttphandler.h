@@ -1,6 +1,7 @@
 #ifndef QHTTPHANDER_H
 #define QHTTPHANDER_H
 
+#include "qtserverglobal.h"
 #include <QSharedPointer>
 
 QT_BEGIN_NAMESPACE
@@ -11,7 +12,7 @@ class QHttpResponse;
 
 typedef void FUNCTION_HANDLER_SIGN1(QHttpRequest & req, QHttpResponse & res);
 
-class QHttpHandler
+class Q_SERVER_EXPORT QHttpHandler
 {
 public:
 	enum {
@@ -27,7 +28,7 @@ public:
 	virtual void invoke(QHttpContext & ctx);
 };
 
-class QHttpHandlerRef : public QSharedPointer<QHttpHandler>
+class Q_SERVER_EXPORT QHttpHandlerRef : public QSharedPointer<QHttpHandler>
 {
 public:
 	QHttpHandlerRef();
@@ -46,7 +47,7 @@ public:
 	}
 };
 
-class QHttpHandler_UrlFilter : public QHttpHandler
+class Q_SERVER_EXPORT QHttpHandler_UrlFilter : public QHttpHandler
 {
 public:
 	QHttpHandler_UrlFilter(const char * exp);
@@ -58,7 +59,7 @@ private:
 	QString m_urlexp;
 };
 
-class QHttpHandler_MethodFilter : public QHttpHandler
+class Q_SERVER_EXPORT QHttpHandler_MethodFilter : public QHttpHandler
 {
 public:
 	QHttpHandler_MethodFilter(const char * method);
@@ -70,7 +71,7 @@ private:
 	QString m_method;
 };
 
-class QHttpHandler_Method1 : public QHttpHandler
+class Q_SERVER_EXPORT QHttpHandler_Method1 : public QHttpHandler
 {
 public:
 	QHttpHandler_Method1(FUNCTION_HANDLER_SIGN1 func);

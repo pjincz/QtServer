@@ -8,7 +8,7 @@
 
 QT_BEGIN_NAMESPACE
 
-class QHttpRequest
+class Q_SERVER_EXPORT QHttpRequest
 {
 public:
 	QHttpRequest();

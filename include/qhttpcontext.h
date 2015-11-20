@@ -11,7 +11,7 @@ class QHttpResponse;
 typedef QVector<QHttpHandlerRef> QHttpHandlerSet;
 typedef QVector<QHttpHandlerSet> QHttpHandlerSetChain;
 
-class QHttpContext
+class Q_SERVER_EXPORT QHttpContext
 {
 public:
 	QHttpContext();

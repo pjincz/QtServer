@@ -36,7 +36,7 @@ QT_BEGIN_NAMESPACE
 	LAMBDA_IMPLICT_CONVERTION_WORKAROUND(method)
 
 
-class QHttpRouter : public QObject, QHttpHandler
+class Q_SERVER_EXPORT QHttpRouter : public QObject, QHttpHandler
 {
 	Q_OBJECT
 public:

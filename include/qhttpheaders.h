@@ -7,7 +7,7 @@
 
 QT_BEGIN_NAMESPACE
 
-class QHttpHeaders : public QHash<QString, QString>
+class Q_SERVER_EXPORT QHttpHeaders : public QHash<QString, QString>
 {
 public:
 	typedef QHash<QString, QString> super_type;

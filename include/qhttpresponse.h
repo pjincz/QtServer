@@ -7,7 +7,7 @@
 
 QT_BEGIN_NAMESPACE
 
-class QHttpResponse
+class Q_SERVER_EXPORT QHttpResponse
 {
 public:
 	QHttpResponse();

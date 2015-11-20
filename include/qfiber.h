@@ -14,7 +14,7 @@ class QFiberPrivate;
 
 typedef void (*FIBER_ENTRY)(QVariant);
 
-class Q_CORE_EXPORT QFiber : public QObject
+class Q_SERVER_EXPORT QFiber : public QObject
 {
 	Q_OBJECT
 public:

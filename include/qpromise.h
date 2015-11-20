@@ -7,7 +7,7 @@
 
 QT_BEGIN_NAMESPACE
 
-class QPromiseBase : public QObject
+class Q_SERVER_EXPORT QPromiseBase : public QObject
 {
 	Q_OBJECT
 public:
@@ -23,7 +23,7 @@ signals:
 };
 
 template<typename T>
-class QPromise : public QPromiseBase
+class Q_SERVER_EXPORT QPromise : public QPromiseBase
 {
 public:
 	inline void fullfill(const T & v)

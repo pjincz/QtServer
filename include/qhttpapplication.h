@@ -6,7 +6,7 @@
 
 QT_BEGIN_NAMESPACE
 
-class QHttpApplication : public QHttpService
+class Q_SERVER_EXPORT QHttpApplication : public QHttpService
 {
 	Q_OBJECT
 public:
