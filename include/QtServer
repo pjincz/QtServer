@@ -7,5 +7,7 @@
 #include "qhttpheaders.h"
 #include "qhttprequest.h"
 #include "qhttpresponse.h"
+#include "qhttphandler.h"
 
 #include "qhttpservice.h"
+#include "qhttpapplication.h"

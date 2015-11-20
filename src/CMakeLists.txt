@@ -17,6 +17,7 @@ set(SRCS
 	qhttpcontext.cpp
 	qhttprouter.cpp
 	qhttphandler.cpp
+	qhttpapplication.cpp
 	)
 set(HEADERS
 	../include/qtserverglobal.h
@@ -30,6 +31,7 @@ set(HEADERS
 	../include/qhttpservice.h
 	../include/qhttprouter.h
 	../include/qhttphandler.h
+	../include/qhttpapplication.h
 	)
 
 include_directories("${CMAKE_CURRENT_BINARY_DIR}/3rdparty/libcoro")
