@@ -1,5 +1,5 @@
-#ifndef QHTTPHANDER_H
-#define QHTTPHANDER_H
+#ifndef QHTTPHANDLER_H
+#define QHTTPHANDLER_H
 
 #include "qtserverglobal.h"
 #include <QSharedPointer>

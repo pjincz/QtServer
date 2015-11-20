@@ -1,5 +1,5 @@
-#ifndef Q_PROMISE
-#define Q_PROMISE
+#ifndef QPROMISE_H
+#define QPROMISE_H
 
 #include "qtserverglobal.h"
 #include <QtCore/QObject>

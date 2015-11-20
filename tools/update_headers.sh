@@ -28,5 +28,14 @@ ls *.h | while read line; do
 			echo "Warning: $line missing qtserverglobal.h"
 		fi
 	fi
+
+	# check macro
+	EXP_MACRO=`echo $line | awk '{print toupper($0)}' | sed 's/\./_/g'`
+	if ! cat $line | sed '1p' | grep -q $EXP_MACRO; then
+		echo "Warning: $line macro mot matched expect $EXP_MACRO"
+	fi
+	if ! cat $line | sed '2p' | grep -q $EXP_MACRO; then
+		echo "Warning: $line macro mot matched expect $EXP_MACRO"
+	fi
 done
 
