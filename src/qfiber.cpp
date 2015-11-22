@@ -117,7 +117,7 @@ void QFiber::promise_rejected(const QVariant & var)
 	resume(var, true);
 }
 
-QVariant QFiber::yield_base(QPromiseBase * promise)
+QVariant QFiber::yield(QPromiseBase * promise)
 {
 	Q_ASSERT(global()->current);
 

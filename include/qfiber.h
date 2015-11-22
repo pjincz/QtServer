@@ -8,7 +8,6 @@
 QT_BEGIN_NAMESPACE
 
 class QPromiseBase;
-template<typename T> class QPromise;
 
 class QFiberPrivate;
 
@@ -27,13 +26,7 @@ private:
 	void resume(const QVariant & passin, bool rejected);
 
 public:
-	static QVariant yield_base(QPromiseBase * promise);
-
-	template<typename T>
-	static inline T yield(QPromise<T> * promise) 
-	{
-		return yield_base((QPromiseBase*)promise).value<T>();
-	}
+	static QVariant yield(QPromiseBase * promise);
 
 private slots:
 	void promise_fullfilled(const QVariant & var);

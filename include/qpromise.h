@@ -4,6 +4,7 @@
 #include "qtserverglobal.h"
 #include <QtCore/QObject>
 #include <QtCore/QVariant>
+#include "qfiber.h"
 
 QT_BEGIN_NAMESPACE
 
@@ -29,6 +30,11 @@ public:
 	inline void fullfill(const T & v)
 	{
 		QPromiseBase::fullfill(QVariant::fromValue<T>(v));
+	}
+	inline T yield()
+	{
+		QVariant v = QFiber::yield(this);
+		return v.value<T>();
 	}
 };
 
