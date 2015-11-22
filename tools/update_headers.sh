@@ -4,7 +4,9 @@ cd ../include
 
 rm Q*
 
-ls *.h | sort | sed 's/.*/#include "&"/' > QtServer
+echo "#include <QtCore/QtCore>" > QtServer
+echo "#include <QtNetwork/QtNetwork>" >> QtServer
+ls *.h | sort | sed 's/.*/#include "&"/' >> QtServer
 echo "QtServer is created"
 
 ls *.h | while read line; do
