@@ -29,10 +29,18 @@ if (NOT TARGET Qt5::rcc)
     )
 endif()
 
+if (NOT TARGET qtpcre)
+	add_library(qtpcre STATIC IMPORTED)
+	set_target_properties(qtpcre PROPERTIES
+		IMPORTED_LOCATION "${QTBASE_ROOT}/lib/libqtpcre.a")
+endif()
+
 if (NOT TARGET Qt5::Core)
 	add_library(Qt5::Core STATIC IMPORTED)
 	set_target_properties(Qt5::Core PROPERTIES
 		IMPORTED_LOCATION "${QTBASE_ROOT}/lib/libQt5Core.a")
+	set_property(TARGET Qt5::Core APPEND PROPERTY INTERFACE_LINK_LIBRARIES
+		z qtpcre m dl gthread-2.0 glib-2.0 rt pthread)
 	set_property(TARGET Qt5::Core APPEND PROPERTY INTERFACE_INCLUDE_DIRECTORIES
 		"${QTBASE_ROOT}/include" "${QTBASE_ROOT}/include/QtCore")
 endif()

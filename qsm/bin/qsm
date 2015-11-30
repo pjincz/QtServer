@@ -1,0 +1,17 @@
+#!/bin/sh
+
+QS_PATH=$(dirname $(dirname $(dirname $(readlink -f $0))))
+QSM_ROOT="$QS_PATH/qsm"
+
+if [ -z "$1" ]; then
+	CMD="help"
+else
+	CMD=$1
+	shift
+fi
+
+if [ -f "$QSM_ROOT/scripts/$CMD" ]; then
+	exec "$QSM_ROOT/scripts/$CMD" "$@"
+else
+	echo "command \`$CMD\` not found!"
+fi

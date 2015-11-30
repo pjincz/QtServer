@@ -1,0 +1,17 @@
+#!/bin/sh
+# build QtServer project
+
+set -e
+. "$(dirname $0)/libs.sh"
+
+if [ ! -f "cmake/qsm.cmake" ]; then
+	echo not in a qsm project
+	exit
+fi
+
+[ -d build ] || mkdir build
+cd build
+
+[ -f Makefile ] || cmake .. -D"QS_PATH=$QS_PATH"
+
+make "$@"

@@ -1,0 +1,10 @@
+#!/bin/sh
+# show this help
+
+. "$(dirname $0)/libs.sh"
+
+echo "usage: qsm [cmd] [arguments...]"
+ls "$QSM_SCRIPTS" | grep -v libs | while read cmd; do
+	INFO=`cat "$QSM_SCRIPTS/$cmd" | sed -n '2{s/^# //p}'`
+	printf "    %-8s%s\n" "$cmd" "$INFO"
+done

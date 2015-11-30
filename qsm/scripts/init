@@ -1,0 +1,41 @@
+#!/bin/sh
+# init a QtServer project in current directory
+
+set -e
+. "$(dirname $0)/libs.sh"
+
+if [ ! "$(ls -a | grep '' -c)" -eq "2" ]; then
+	echo "Current directory is not empty!"
+	echo "qspm init can only work in empty directory!"
+	echo
+	exit
+fi
+
+read_string()
+{
+	echo -n "$1: ($3) "
+	read tmp
+	if [ -z "$tmp" ]; then
+		eval $2="$3"
+	else
+		eval $2="$tmp"
+	fi
+}
+
+read_string "name" NAME $(basename $(readlink -f .))
+
+read_string "init git" INIT_GIT yes
+
+
+TMP_DIR="$QSM_ROOT/template"
+cp -rv "$TMP_DIR/cmake" .
+cp -v "$TMP_DIR/main.cpp" .
+cp -v "$TMP_DIR/Makefile" .
+cat "$TMP_DIR/CMakeLists.txt" | sed "s/QSM_NAME/$NAME/" > CMakeLists.txt
+
+if [ "$INIT_GIT" = "yes" ]; then
+	cp -rv "$TMP_DIR/.gitignore" .
+	git init .
+	git add . 
+	git commit -m 'first commit'
+fi

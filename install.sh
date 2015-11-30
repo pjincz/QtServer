@@ -32,7 +32,7 @@ fi
 	echo
 
 	cd qtbase
-	./configure -opensource -confirm-license -release -static -no-gui -no-xcb
+	./configure -opensource -confirm-license -release -static -no-gui -no-xcb -no-icu
 )
 
 [ -f qtbase/lib/libQt5Network.a ] || (
