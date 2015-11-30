@@ -34,13 +34,16 @@ fi
 	echo
 
 	cd build/qtbase
-	./configure -opensource -confirm-license -release -static
+	./configure -opensource -confirm-license -release -static -no-gui -no-xcb
 )
 
 [ -f build/qtbase/lib/libQt5Network.a ] || (
 	info "Building Qt Base..."
 	echo
 
-	cd build/qtbase/src
+	cd build/qtbase
+	make sub-src-qmake_all
+
+	cd src
 	make sub-corelib sub-network
 )
