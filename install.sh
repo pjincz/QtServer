@@ -45,3 +45,19 @@ fi
 	cd src
 	make sub-corelib sub-network
 )
+
+[ -d ~/bin ] || mkdir -p ~/bin
+
+if [ -h "$HOME/bin/qsm" ]; then 
+	if [ "$(readlink -f $HOME/bin/qsm)" = "$PWD/qsm/bin/qsm" ]; then
+		info "qsm is installed"
+	else
+		warning "Another version of QtServer is installed."
+		warning "If you want to change your QtServer, remove \$HOME/bin/qsm"
+		warning "and create a new symbol link to $PWD/qsm/bin/qsm"
+	fi
+else
+	ln -s "$PWD/qsm/bin/qsm" ~/bin/qsm
+	info "qsm is installed to \$HOME/bin/qsm"
+	info "If \$HOME/bin not in your \$PATH, try to update you .profile"
+fi
