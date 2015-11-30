@@ -5,8 +5,10 @@ add_subdirectory(3rdparty)
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 set(CMAKE_AUTOMOC ON)
 
-find_package(Qt5Core)
-find_package(Qt5Network)
+#find_package(Qt5Core NO_DEFAULT_PATH)
+#find_package(Qt5Network NO_DEFAULT_PATH)
+
+set(CMAKE_CXX_FLAGS "-fPIC")
 
 set(SRCS
 	qpromise.cpp
