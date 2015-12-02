@@ -43,7 +43,18 @@ fi
 	make sub-src-qmake_all
 
 	cd src
-	make sub-corelib sub-network
+	make sub-corelib sub-network -j`nproc`
+)
+
+[ -d build ] || mkdir build
+
+[ -f build/src/libQtServer.a ] || (
+	info "Building QtServer..."
+	echo 
+
+	cd build
+	cmake ..
+	make -j`nproc`
 )
 
 [ -d ~/bin ] || mkdir -p ~/bin

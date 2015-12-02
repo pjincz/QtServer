@@ -39,8 +39,6 @@ if (NOT TARGET Qt5::Core)
 	add_library(Qt5::Core STATIC IMPORTED)
 	set_target_properties(Qt5::Core PROPERTIES
 		IMPORTED_LOCATION "${QTBASE_ROOT}/lib/libQt5Core.a")
-	set_property(TARGET Qt5::Core APPEND PROPERTY INTERFACE_LINK_LIBRARIES
-		z qtpcre m dl gthread-2.0 glib-2.0 rt pthread)
 	set_property(TARGET Qt5::Core APPEND PROPERTY INTERFACE_INCLUDE_DIRECTORIES
 		"${QTBASE_ROOT}/include" "${QTBASE_ROOT}/include/QtCore")
 endif()
@@ -48,8 +46,7 @@ endif()
 if (NOT TARGET Qt5::Network)
 	add_library(Qt5::Network STATIC IMPORTED)
 	set_target_properties(Qt5::Network PROPERTIES
-		IMPORTED_LOCATION "${QTBASE_ROOT}/lib/libQt5Network.a"
-		INTERFACE_LINK_LIBRARIES Qt5::Core)
+		IMPORTED_LOCATION "${QTBASE_ROOT}/lib/libQt5Network.a")
 	set_property(TARGET Qt5::Network APPEND PROPERTY INTERFACE_INCLUDE_DIRECTORIES
 		"${QTBASE_ROOT}/include" "${QTBASE_ROOT}/include/QtNetwork")
 endif()
@@ -57,3 +54,22 @@ endif()
 set(Qt5Core_QMAKE_EXECUTABLE Qt5::qmake)
 set(Qt5Core_MOC_EXECUTABLE Qt5::moc)
 set(Qt5Core_RCC_EXECUTABLE Qt5::rcc)
+
+function(set_link_dep_from_prl TARGET)
+	string(REPLACE "::" "" X "${TARGET}")
+	set(PRL_FILE "${QTBASE_ROOT}/lib/lib${X}.prl")
+	file(STRINGS ${PRL_FILE} LINES)
+	foreach(L ${LINES})
+		if (L MATCHES "^QMAKE_PRL_LIBS ")
+			string(REGEX REPLACE "^.*= *" "" L "${L}")
+			string(REGEX REPLACE "-L[^ ]* *" "" L "${L}")
+			string(REPLACE "-l" "" L "${L}")
+			string(REPLACE "Qt5" "Qt5::" L "${L}")
+			string(REPLACE " " ";" L ${L})
+			set_property(TARGET ${TARGET} APPEND PROPERTY INTERFACE_LINK_LIBRARIES ${L})
+		endif()
+	endforeach()
+endfunction()
+
+set_link_dep_from_prl(Qt5::Core)
+set_link_dep_from_prl(Qt5::Network)
