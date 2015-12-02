@@ -2,10 +2,10 @@
 
 QT_VERSION=v5.5.1
 
-. ./install/libs.sh
+. ./scripts/libs.sh
 
 if [ -f $(which apt-get) ]; then
-	./install/dep-inst-debian.sh
+	./scripts/dep-inst-debian.sh
 else
 	warning 'Cannot install dependency automatically!'
 fi
