@@ -34,6 +34,17 @@ fi
 	git checkout $QT_VERSION
 )
 
+# patch qtbase
+if [ "$(uname)" = "FreeBSD" ]; then
+	[ -f qtbase/freebsd.patched ] || (
+		info "Patch QtBase..." ""
+
+		cp qtbase/src/corelib/io/qstorageinfo_unix.cpp qtbase/src/corelib/io/qstorageinfo_unix.cpp.bak
+		sed 's/f_frsize/f_bsize/' qtbase/src/corelib/io/qstorageinfo_unix.cpp.bak > qtbase/src/corelib/io/qstorageinfo_unix.cpp
+		echo > qtbase/freebsd.patched
+	)
+fi
+
 [ -f qtbase/Makefile ] || (
 	info "Configuring Qt Base..." ""
 
