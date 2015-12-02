@@ -1,0 +1,17 @@
+#!/bin/sh
+# same to: mkdir project_name; cd project_name; qsm init
+
+set -e
+. "$(dirname $0)/libs.sh"
+
+if [ "$#" != "1" ]; then
+	usage "qsm create <project_name>"
+fi
+
+if [ -d "$1" ]; then
+	error "Directory \`$1\` already exists"
+	exit 1
+fi
+
+mkdir "$1" && cd "$1" && $QSM init
+

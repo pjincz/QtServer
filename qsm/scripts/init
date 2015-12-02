@@ -5,10 +5,8 @@ set -e
 . "$(dirname $0)/libs.sh"
 
 if [ ! "$(ls -a | grep '' -c)" -eq "2" ]; then
-	echo "Current directory is not empty!"
-	echo "qspm init can only work in empty directory!"
-	echo
-	exit
+	warning "Current directory is not empty!"
+	error "qspm init can only work in empty directory!"
 fi
 
 read_string()
