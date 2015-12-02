@@ -14,3 +14,4 @@ install()
 [ -x "$(which make)" ] || install make
 [ -x "$(which gcc)" ] || install gcc
 [ -x "$(which g++)" ] || install g++
+[ -x "$(which cmake)" ] || install cmake
