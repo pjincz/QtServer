@@ -1,13 +1,13 @@
 warning()
 {
-	/bin/echo -e -n '\e[0;31mWarning: '
-	/bin/echo "$@"
-	/bin/echo -e -n '\e[0m'
+	for x in "$@"; do
+		printf "\033[0;31mWarning: %s\033[0m\n" "$x"
+	done
 }
 
 info()
 {
-	/bin/echo -e -n '\e[0;34mInformation: '
-	/bin/echo "$@"
-	/bin/echo -e -n '\e[0m'
+	for x in "$@"; do
+		printf "\033[0;34mInformation: %s\033[0m\n" "$x"
+	done
 }
