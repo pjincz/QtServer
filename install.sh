@@ -43,7 +43,7 @@ fi
 	fi
 
 	cd qtbase
-	./configure -opensource -confirm-license -release -static -no-gui -no-xcb -no-icu $PLATFORM
+	./configure -opensource -confirm-license -release -static -no-gui -no-xcb -no-icu -qt-pcre $PLATFORM
 )
 
 [ -f qtbase/lib/libQt5Network.a ] || (

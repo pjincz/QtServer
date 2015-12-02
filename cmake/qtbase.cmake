@@ -64,6 +64,11 @@ function(set_link_dep_from_prl TARGET)
 			string(REGEX REPLACE "^.*= *" "" L "${L}")
 			string(REGEX REPLACE "-L[^ ]* *" "" L "${L}")
 			string(REPLACE "-l" "" L "${L}")
+			if (CMAKE_SYSTEM_NAME STREQUAL "FreeBSD")
+				# hack, add dependency to Qt5Core, I don't known why they are leaked
+				set(L "pthread ${L}")
+				string(REPLACE "execinfo" "execinfo elf" L "${L}")
+			endif()
 			string(REPLACE "Qt5" "Qt5::" L "${L}")
 			string(REPLACE " " ";" L ${L})
 			set_property(TARGET ${TARGET} APPEND PROPERTY INTERFACE_LINK_LIBRARIES ${L})
@@ -73,3 +78,4 @@ endfunction()
 
 set_link_dep_from_prl(Qt5::Core)
 set_link_dep_from_prl(Qt5::Network)
+

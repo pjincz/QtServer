@@ -7,32 +7,36 @@ QS_PATH=$(dirname "$QSM_ROOT")
 QSM_BIN="$QSM_ROOT/bin"
 QSM_SCRIPTS="$QSM_ROOT/scripts"
 
+_message()
+{
+	local TEXT=$1
+	shift
+	local COLOR=$1
+	shift
+	for x; do
+		printf "\033[%sm%s%s\033[0m\n" "$COLOR" "$TEXT" "$x"
+		local TEXT=`echo "$TEXT" | sed 's/./ /g'`
+	done 
+}
+
 warning()
 {
-	/bin/echo -e -n '\e[0;31mWarning: '
-	/bin/echo "$@"
-	/bin/echo -e -n '\e[0m'
+	_message "Warning: " "0;31" "$@"
 }
 
 info()
 {
-	/bin/echo -e -n '\e[0;34mInformation: '
-	/bin/echo "$@"
-	/bin/echo -e -n '\e[0m'
+	_message "Warning: " "0;34" "$@"
 }
 
 error()
 {
-	/bin/echo -e -n '\e[1;31mError: '
-	/bin/echo "$@"
-	/bin/echo -e -n '\e[0m'
+	_message "Warning: " "1;31" "$@"
 	exit 1
 }
 
 usage()
 {
-	/bin/echo -e -n '\e[0;34mUsage: '
-	/bin/echo "$@"
-	/bin/echo -e -n '\e[0m'
+	_message "Warning: " "0;34" "$@"
 	exit 0
 }
