@@ -20,16 +20,25 @@ read_string()
 	fi
 }
 
-read_string "name" NAME $(basename $(readlink -f .))
-
+read_string "name" NAME $(basename $(readlink -f .) | sed 's/\.qs$//')
+read_string "app/lib" KIND app
 read_string "init git" INIT_GIT yes
 
 
-TMP_DIR="$QSM_ROOT/template"
-cp -rv "$TMP_DIR/cmake" .
-cp -v "$TMP_DIR/main.cpp" .
-cp -v "$TMP_DIR/Makefile" .
-cat "$TMP_DIR/CMakeLists.txt" | sed "s/QSM_NAME/$NAME/" > CMakeLists.txt
+TMP_DIR="$QSM_ROOT/templates/${KIND}"
+
+if [ ! -d "$TMP_DIR" ]; then
+	error "$TMP_DIR does not exists!"
+fi
+
+cp -rTv "$TMP_DIR" .
+
+for f in $(find . -type f); do
+	X=`cat $f | sed "s/QSM_NAME/$NAME/g"`
+	F2=`echo "$f" | sed "s/QSM_NAME/$NAME/g"`
+	rm "$f"
+	echo "$X" > "$F2"
+done
 
 if [ "$INIT_GIT" = "yes" ]; then
 	cp -rv "$TMP_DIR/.gitignore" .
