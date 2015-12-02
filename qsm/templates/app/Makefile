@@ -2,4 +2,4 @@ all:
 	@qsm make
 
 clean:
-	@qsm make clean
+	rm -rf build

@@ -5,11 +5,10 @@ project(QSM_NAME)
 set(QTSERVER_CPP1x on)
 include(cmake/qsm.cmake)
 
-set(SRCS
-	# add your source and headers files here
+qs_project(
+	QSM_NAME
+	# add your source and headers files below
 	main.cpp
 	)
 
-add_executable(app ${SRCS})
-target_link_libraries(app Qt5::Core Qt5::Network Qt5::Server)
-set_property(TARGET app PROPERTY RUNTIME_OUTPUT_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}")
+target_link_libraries(QSM_NAME Qt5::Core Qt5::Network Qt5::Server)

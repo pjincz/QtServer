@@ -2,6 +2,9 @@
 /app
 /qs.path
 
+/qs_modules
+!/qs_modules/CMakeLists.txt
+
 # vim
 *.swp
 *~
