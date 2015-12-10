@@ -7,8 +7,6 @@
 
 QT_BEGIN_NAMESPACE
 
-class QPromiseBase;
-
 class QFiberPrivate;
 
 typedef void (*FIBER_ENTRY)(QVariant);
@@ -22,18 +20,17 @@ public:
 
 	void run();
 
-private:
-	void resume(const QVariant & passin, bool rejected);
+protected:
+	void resume();
 
 public:
-	static QVariant yield(QPromiseBase * promise);
-
-private slots:
-	void promise_fullfilled(const QVariant & var);
-	void promise_rejected(const QVariant & var);
+	static void wait(QObject * obj, const char * signal);
 
 signals:
 	void done();
+
+protected slots:
+	void wait_done();
 
 private:
 	QFiberPrivate *d;

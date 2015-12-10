@@ -11,7 +11,6 @@ set(CMAKE_AUTOMOC ON)
 set(CMAKE_CXX_FLAGS "-fPIC")
 
 set(SRCS
-	qpromise.cpp
 	qfiber.cpp
 	qhttpservice.cpp
 	qhttprequest.cpp
@@ -23,7 +22,6 @@ set(SRCS
 	)
 set(HEADERS
 	../include/qtserverglobal.h
-	../include/qpromise.h
 	../include/qfiber.h
 
 	../include/qhttpcontext.h

@@ -9,5 +9,4 @@
 #include "qhttpresponse.h"
 #include "qhttprouter.h"
 #include "qhttpservice.h"
-#include "qpromise.h"
 #include "qtserverglobal.h"

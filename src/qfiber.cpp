@@ -1,6 +1,6 @@
 #include <qfiber.h>
-#include <qpromise.h>
 #include "3rdparty/libcoro/coro.h"
+#include <QtCore>
 
 QT_BEGIN_NAMESPACE
 
@@ -10,7 +10,7 @@ class QFiberGlobal
 {
 public:
 	QFiberGlobal()
-		: current(0), promise(NULL), rejected(false)
+		: current(0)
 	{
 		coro_create(&mainctx, NULL, NULL, NULL, 0);
 	}
@@ -19,9 +19,6 @@ public:
 	coro_context mainctx;
 
 	QFiberPrivate * current;
-	QPromiseBase * promise;
-	QVariant passin;
-	bool rejected;
 };
 
 class QFiberPrivate
@@ -33,6 +30,14 @@ public:
 	FIBER_ENTRY entry;
 	QVariant arg;
 	QFiber * q;
+
+	// fiber -> main
+	bool out_goon;
+
+	void reset()
+	{
+		out_goon = false;
+	}
 };
 
 static QFiberGlobal * global() 
@@ -63,13 +68,15 @@ QFiber::QFiber(FIBER_ENTRY entry, const QVariant & arg)
 	d = new QFiberPrivate;
 	d->entry = entry;
 	d->arg = arg;
+	d->q = this;
+	d->reset();
 	coro_stack_alloc(&d->stack, 0);
 	coro_create(&d->ctx, coro_body, d, d->stack.sptr, d->stack.ssze);
 }
 
 void QFiber::run()
 {
-	resume(QVariant(), false);
+	resume();
 }
 
 QFiber::~QFiber()
@@ -77,59 +84,43 @@ QFiber::~QFiber()
 	coro_destroy(&d->ctx);
 	coro_stack_free(&d->stack);
 
+	// qDebug() << 111;
 	delete d;
+	// qDebug() << 222;
 }
 
-void QFiber::resume(const QVariant & passin, bool rejected)
+void QFiber::resume()
 {
+	// qDebug() << "resume" << d->out_goon;
+	
 	QFiberGlobal * g = global();
 
-	g->promise = NULL;
-	g->passin = passin;
-	g->rejected = rejected;
+	d->reset();
 	g->current = d;
 	coro_transfer(&g->mainctx, &d->ctx);
 	g->current = NULL;
 
-	if (g->promise)
-	{
-		connect(g->promise, SIGNAL(fullfilled(const QVariant&)), this, SLOT(promise_fullfilled(const QVariant&)));
-		connect(g->promise, SIGNAL(rejected(const QVariant&)), this, SLOT(promise_rejected(const QVariant&)));
-	}
-	else
+	if (!d->out_goon)
 	{
 		emit done();
 		deleteLater();
 	}
 }
 
-void QFiber::promise_fullfilled(const QVariant & var)
+void QFiber::wait(QObject * obj, const char * signal)
 {
-	Q_ASSERT(qobject_cast<QPromiseBase*>(sender()));
-	sender()->deleteLater();
-	resume(var, false);
-}
-
-void QFiber::promise_rejected(const QVariant & var)
-{
-	Q_ASSERT(qobject_cast<QPromiseBase*>(sender()));
-	sender()->deleteLater();
-	resume(var, true);
-}
-
-QVariant QFiber::yield(QPromiseBase * promise)
-{
-	Q_ASSERT(global()->current);
-
-	if (!promise) 
-		return QVariant();
-
 	QFiberGlobal * g = global();
-	g->promise = promise;
+	connect(obj, signal, g->current->q, SLOT(wait_done()));
 
+	g->current->out_goon = true;
 	coro_transfer(&g->current->ctx, &g->mainctx);
+}
 
-	return g->passin;
+void QFiber::wait_done()
+{
+	disconnect(sender(), 0, 0, 0);
+
+	resume();
 }
 
 QT_END_NAMESPACE
