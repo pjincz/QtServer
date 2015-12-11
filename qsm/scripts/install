@@ -1,0 +1,39 @@
+#!/bin/sh
+# install sub modules
+
+set -e
+. "$(dirname $0)/libs.sh"
+
+if [ ! -f "cmake/qsm.cmake" ]; then
+	echo not in a qsm project
+	exit
+fi
+
+install_repo()
+{
+	local DIR=`basename "$1" | sed 's/\.git//'`
+
+	mkdir -p qs_modules
+	cd qs_modules
+
+	if [ -d "$DIR" ]; then
+		echo "$DIR already installed"
+	else
+		git clone "$1"
+	fi
+	
+	cd ..
+}
+
+if [ "$#" = "0" ]; then
+	REPO=`cat qs_modules.cmake | sed -n '/qs_module/ { s/.*(//; s/).*//; p }' | awk '{print $2}'`
+	echo "$REPO" | while read line; do
+		install_repo `echo "$line" | sed 's/"//g'`
+	done
+elif [ "$#" = "1" ]; then
+	install_repo "$1"
+	echo "qs_module($DIR \"$1\" master)" >> ../qs_modules.cmake
+else
+	usage "qsm install" "qsm install <git_path>"
+fi
+

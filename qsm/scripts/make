@@ -9,6 +9,18 @@ if [ ! -f "cmake/qsm.cmake" ]; then
 	exit
 fi
 
+dep_check()
+{
+	X=`cat qs_modules.cmake | grep qs_module | sed 's/.*(//; s/).*//; s/"//g' | awk '{print $1}'`
+	for x in ${X}; do
+		if [ ! -d "qs_modules/${x}" ]; then
+			error "module ${x} does not exists, run \`qsm install\` first"
+		fi
+	done
+}
+
+dep_check
+
 [ -d build ] || mkdir build
 cd build
 
