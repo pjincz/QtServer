@@ -1,6 +1,10 @@
-if(QTSERVER_CPP1x)
-	set(CMAKE_CXX_FLAGS "-std=c++11")
+if(QSM_LOADED)
+	return()
 endif()
+set(QSM_LOADED on)
+
+# TODO
+set(CMAKE_CXX_FLAGS "-std=c++11")
 
 include(${QS_PATH}/cmake/qtbase.cmake)
 
@@ -34,6 +38,9 @@ macro(qs_project prj)
 
 	add_library(${prj} STATIC ${_HEADERS} ${_SRCS})
 	set_property(TARGET ${prj} APPEND PROPERTY INCLUDE_DIRECTORIES "${CMAKE_CURRENT_SOURCE_DIR}/include")
+	if(QS_DEP_TARGETS)
+		target_link_libraries(${prj} ${QS_DEP_TARGETS})
+	endif()
 
 	if(CMAKE_CURRENT_SOURCE_DIR STREQUAL CMAKE_SOURCE_DIR)
 		add_executable(app ${_REST})
@@ -43,6 +50,22 @@ macro(qs_project prj)
 	endif()
 endmacro()
 
+macro(qs_module name git_path branch)
+	include(${CMAKE_SOURCE_DIR}/qs_modules/${name}/qs_modules.cmake)
+	list(APPEND QS_MODULES ${name})
+
+	string(REPLACE ".qs" "" QS_TARGET ${name})
+	list(APPEND QS_DEP_TARGETS ${QS_TARGET})
+endmacro()
+
+set(QS_MODULES)
+set(QS_DEP_TARGETS)
+include("${CMAKE_SOURCE_DIR}/qs_modules.cmake")
+list(REMOVE_DUPLICATES QS_MODULES)
+list(REMOVE_DUPLICATES QS_DEP_TARGETS)
+
 if(CMAKE_CURRENT_SOURCE_DIR STREQUAL CMAKE_SOURCE_DIR)
-	include("${CMAKE_SOURCE_DIR}/qs_modules/CMakeLists.txt")
+	foreach(m ${QS_MODULES})
+		add_subdirectory(${CMAKE_SOURCE_DIR}/qs_modules/${m})
+	endforeach()
 endif()

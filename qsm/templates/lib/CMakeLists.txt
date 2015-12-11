@@ -2,7 +2,6 @@ cmake_minimum_required(VERSION 2.8.11)
 
 project(QSM_NAME)
 
-set(QTSERVER_CPP1x on)
 include(cmake/qsm.cmake)
 
 qs_project(
