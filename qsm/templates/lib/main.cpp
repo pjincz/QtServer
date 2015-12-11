@@ -3,7 +3,7 @@
 
 void myfiber(QVariant /*x*/)
 {
-	qDebug() << hello::hello();
+	qDebug() << QSM_NAME::hello();
 }
 
 int main(int argc, char * argv[])
