@@ -63,6 +63,117 @@ void coro_body(void * arg)
 	coro_transfer(&d->ctx, &global()->mainctx);
 }
 
+////////////////////////////////////////////////////////////////////////////////
+// QAWaitAgent
+
+QAWaitAgent::QAWaitAgent()
+{
+	m_fiber = global()->current->q;
+}
+
+void QAWaitAgent::setTimeout(int timeout)
+{
+	if (timeout >= 0)
+		startTimer(timeout);
+}
+
+void QAWaitAgent::wait(QObject * obj, const char * signal)
+{
+	static const int memberOffset = QObject::staticMetaObject.methodCount();
+
+	const QByteArray ba = QMetaObject::normalizedSignature(signal + 1);
+	const QMetaObject * const mo = obj->metaObject();
+	const int sigIndex = mo->indexOfMethod(ba.constData());
+	if (sigIndex < 0) {
+		qWarning() << "QAWaitAgent: Not a valid signal:" << signal;
+		// in order to keep index of result, put a placeholder here
+		m_list.append(qMakePair(obj, sigIndex));
+		return;
+	}
+
+	QMetaObject::connect(obj, sigIndex, this, memberOffset, Qt::DirectConnection, 0);
+
+	m_list.append(qMakePair(obj, sigIndex));
+}
+
+QVariantList QAWaitAgent::result()
+{
+	return m_result;
+}
+
+bool QAWaitAgent::event(QEvent * e)
+{
+	if (e->type() == QEvent::Timer) {
+		m_result << TIMEOUT;
+		m_fiber->resume();
+		return true;
+	}
+
+	return QObject::event(e);
+}
+
+int QAWaitAgent::qt_metacall(QMetaObject::Call call, int methodId, void **a)
+{
+	methodId = QObject::qt_metacall(call, methodId, a);
+	if (methodId < 0)
+		return methodId;
+
+	if (call == QMetaObject::InvokeMetaMethod) {
+		if (methodId == 0) {
+			achieved(a);
+		}
+		--methodId;
+	}
+	return methodId;
+}
+
+void QAWaitAgent::achieved(void **a)
+{
+	QObject * o = sender();
+	int s = senderSignalIndex();
+
+	int i;
+	for (i = 0; i < m_list.length(); ++i) {
+		if (m_list[i].first == o && m_list[i].second == s) {
+			break;
+		}
+	}
+	if (i < m_list.length()) {
+		QMetaMethod m = m_list[i].first->metaObject()->method(m_list[i].second);
+		//qDebug() << m.methodSignature();
+
+		m_result.reserve(m.parameterCount() + 1);
+		m_result << i;
+		for (int j = 0; j < m.parameterCount(); ++j) {
+			int tp = m.parameterType(j);
+            if (tp == QMetaType::UnknownType) {
+                void *argv[] = { &tp, &j };
+                QMetaObject::metacall(o,
+                                      QMetaObject::RegisterMethodArgumentMetaType,
+                                      i, argv);
+                if (tp == -1)
+                    tp = QMetaType::UnknownType;
+            }
+            if (tp == QMetaType::UnknownType) {
+                qWarning("QAWaitAgent: Don't know how to handle '%s', use qRegisterMetaType to register it.",
+                         m.parameterNames().at(j).constData());
+            }
+			if (tp == QMetaType::QVariant)
+				m_result << *reinterpret_cast<QVariant *>(a[j + 1]);
+			else
+				m_result << QVariant(tp, a[j + 1]);
+		}
+	} else {
+		// LOGIC ERROR
+		qWarning() << "QAWaitAgent: achieved by unknown signal" << o << s;
+		m_result << LOGIC_ERROR;
+	}
+	m_fiber->resume();
+}
+
+////////////////////////////////////////////////////////////////////////////////
+// QFiber
+
 QFiber::QFiber(FIBER_ENTRY entry, const QVariant & arg)
 {
 	d = new QFiberPrivate;
@@ -91,8 +202,6 @@ QFiber::~QFiber()
 
 void QFiber::resume()
 {
-	// qDebug() << "resume" << d->out_goon;
-	
 	QFiberGlobal * g = global();
 
 	d->reset();
@@ -100,27 +209,29 @@ void QFiber::resume()
 	coro_transfer(&g->mainctx, &d->ctx);
 	g->current = NULL;
 
+	//qDebug() << "resume" << d->out_goon;
+
 	if (!d->out_goon)
 	{
-		emit done();
+		emit finished();
 		deleteLater();
 	}
 }
 
-void QFiber::wait(QObject * obj, const char * signal)
+void QFiber::await(QAWaitAgent & agent)
 {
-	QFiberGlobal * g = global();
-	connect(obj, signal, g->current->q, SLOT(wait_done()));
+	//qDebug() << "await";
 
+	QFiberGlobal * g = global();
 	g->current->out_goon = true;
 	coro_transfer(&g->current->ctx, &g->mainctx);
+
+	//qDebug() << agent.result();
 }
 
-void QFiber::wait_done()
+void QFiber::terminal()
 {
-	disconnect(sender(), 0, 0, 0);
-
-	resume();
+	// TODO
 }
 
 QT_END_NAMESPACE
