@@ -11,7 +11,7 @@ int main(int argc, char * argv[])
 	QCoreApplication app(argc, argv);
 
 	QFiber * fib = new QFiber(myfiber);
-	QObject::connect(fib, SIGNAL(done()), &app, SLOT(quit()), Qt::QueuedConnection);
+	QObject::connect(fib, SIGNAL(finished()), &app, SLOT(quit()), Qt::QueuedConnection);
 	fib->run();
 
 	return app.exec();

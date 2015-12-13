@@ -8,138 +8,100 @@ QT_BEGIN_NAMESPACE
 class QHttpConnection : public QObject
 {
 	Q_OBJECT
-public:
-	enum STATUS {
-		PENDING_HEADER,
-		PENDING_BODY,
-		PENDING_INVOKE,
-		PENDING_RESPONSE,
-		PENDING_DESTROY
-	};
+
 public:
 	QHttpConnection(QHttpService * service, QTcpSocket * socket)
-		: QObject(service), m_service(service), m_socket(socket), m_status(PENDING_HEADER)
+		: QObject(service), m_service(service), m_socket(socket)
 	{
 		socket->setParent(this);
-		connect(socket, SIGNAL(readyRead()), this, SLOT(onData()));
-		connect(socket, SIGNAL(disconnected()), this, SLOT(onDisconnected()));
-		m_ctx.req = &m_req;
-		m_ctx.res = &m_res;
-		m_ctx.service = service;
+
+		QFiber * f = new QFiber(fiber_entry, QVariant::fromValue((void*)this));
+		connect(m_socket, SIGNAL(disconnected()), f, SLOT(terminal()));
+		connect(f, SIGNAL(finished()), this, SLOT(deleteLater()));
+
+		f->run();
 	}
 
 protected:
-	void goon()
+	static void fiber_entry(QVariant v)
 	{
-		for (;;)
-		{
-			if (m_status == PENDING_HEADER)
+		QHttpConnection * c = ((QHttpConnection*)v.value<void *>());
+		c->run();
+	}
+	void fetch()
+	{
+		if (!m_socket->bytesAvailable()) {
+			QFiber::await(m_socket, SIGNAL(readyRead()));
+		}
+		m_cache += m_socket->readAll();
+	}
+	QByteArray takeHeader()
+	{
+		int x;
+		int l;
+		for(;;) {
+			x = m_cache.indexOf("\r\n\r\n", 0);
+			l = 4;
+			if (x == -1)
 			{
-				int x = m_cache.indexOf("\r\n\r\n", 0);
-				int l = 4;
-				if (x == -1)
+				x = m_cache.indexOf("\n\n", 0);
+				l = 2;
+			}
+			else
+			{
+				int y = m_cache.indexOf("\n\n", 0);
+				if (y != -1 && y < x)
 				{
-					x = m_cache.indexOf("\n\n", 0);
+					x = y;
 					l = 2;
 				}
-				else
-				{
-					int y = m_cache.indexOf("\n\n", 0);
-					if (y != -1 && y < x)
-					{
-						x = y;
-						l = 2;
-					}
-				}
-				if (x == -1)
-					return;
-				QByteArray header = m_cache.left(x);
-				m_cache = m_cache.mid(x + l);
-				m_req.parse(header);
-				//m_status = PENDING_INVOKE;
-				m_status = m_req.headers.contains("Content-Length") ? PENDING_BODY : PENDING_INVOKE;
 			}
-			if (m_status == PENDING_BODY)
-			{
-				int l = m_req.headers["Content-Length"].toInt();
-				if (m_cache.length() >= l)
-				{
-					m_req.body = m_cache.left(l);
-					m_cache = m_cache.mid(l);
-					m_status = PENDING_INVOKE;
-				}
-				else
-				{
-					return;
-				}
+			if (x != -1)
+				break;
+			fetch();
+		}
+		QByteArray header = m_cache.left(x);
+		m_cache = m_cache.mid(x + l);
+		return header;
+	}
+	QByteArray takeBody(int len)
+	{
+		while (m_cache.length() < len) {
+			fetch();
+		}
+		QByteArray body = m_cache.left(len);
+		m_cache = m_cache.mid(len);
+		return body;
+	}
+	void run()
+	{
+		for (;;) {
+			QHttpRequest req;
+			req.parse(takeHeader());
+
+			if (req.headers.contains("Content-Length")) {
+				req.body = takeBody(req.headers["Content-Length"].toInt());
 			}
-			if (m_status == PENDING_INVOKE)
-			{
-				m_res.reset();
-				m_status = PENDING_RESPONSE;
-				launchInFiber();
-			}
-			if (m_status == PENDING_RESPONSE)
-			{
+
+			QHttpResponse res;
+			QHttpContext ctx;
+			ctx.req = &req;
+			ctx.res = &res;
+			ctx.service = m_service;
+
+			m_service->invoke(ctx);
+
+			m_socket->write(res.serialize());
+			if (req.protocol == "HTTP/1.0") {
 				return;
 			}
-		}
-	}
-	void launchInFiber()
-	{
-		QFiber * f = new QFiber(fiberEntry, QVariant::fromValue((void*)&m_ctx));
-		connect(f, SIGNAL(done()), this, SLOT(onFiberDone()));
-		f->run();
-	}
-	static void fiberEntry(QVariant v)
-	{
-		QHttpContext * ctx = (QHttpContext *)v.value<void *>();
-		ctx->service->invoke(*ctx);
-	}
-
-protected slots:
-	void onData()
-	{
-		m_cache += m_socket->readAll();
-		goon();
-	}
-	void onDisconnected()
-	{
-		if (m_status == PENDING_RESPONSE)
-		{
-			m_status = PENDING_DESTROY;
-		}
-		else
-		{
-			deleteLater();
-		}
-	}
-	void onFiberDone()
-	{
-		if (m_status == PENDING_DESTROY)
-		{
-			deleteLater();
-		}
-		else
-		{
-			m_socket->write(m_res.serialize());
-			if (m_req.protocol == "HTTP/1.0")
-			{
-				m_socket->close();
-			}
-			m_status = PENDING_HEADER;
-			goon();
 		}
 	}
 
 private:
 	QHttpService * m_service;
 	QTcpSocket * m_socket;
-	STATUS m_status;
 	QByteArray m_cache;
-	QHttpRequest m_req;
-	QHttpResponse m_res;
-	QHttpContext m_ctx;
 };
 
 QHttpService::QHttpService(QObject * parent)
