@@ -2,7 +2,7 @@
 #include "3rdparty/libcoro/coro.h"
 #include <QtCore>
 
-#define DEBUG_FIBER
+//#define DEBUG_FIBER
 //#define DEBUG_FIBER2
 
 #ifdef DEBUG_FIBER
