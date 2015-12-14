@@ -53,6 +53,8 @@ QHttpHandler_MethodFilter::QHttpHandler_MethodFilter(const char * method)
 
 int QHttpHandler_MethodFilter::filter(QHttpContext & ctx)
 {
+	if (ctx.req->method == "HEAD" && m_method == "GET")
+		return FILTER_THROUGH;
 	return m_method == ctx.req->method ? FILTER_THROUGH : FILTER_FILTERED;
 }
 

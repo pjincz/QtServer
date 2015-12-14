@@ -158,7 +158,7 @@ static QString etag(const QByteArray & a)
 static QString etag(QFile & f)
 {
 	QFileInfo fi(f);
-	return "\"" + fi.lastModified().toString() + "\"";
+	return "\"" + fi.lastModified().toString(Qt::ISODate) + "\"";
 }
 
 static void simpleResponse(QIODevice * d, int status, const char * body = NULL)
@@ -184,7 +184,11 @@ void QHttpResponse::serialize(QIODevice * d, QHttpRequest * req)
 {
 	if (body.type == QHttpResponseBody::Empty) {
 		if (status == 0) {
-			simpleResponse(d, 404, "404 Not Found");
+			if (req->method == "HEAD") {
+				simpleResponse(d, 404);
+			} else {
+				simpleResponse(d, 404, "404 Not Found");
+			}
 		} else {
 			d->write(serializeHeader(headers, status, 0));
 		}
@@ -195,6 +199,10 @@ void QHttpResponse::serialize(QIODevice * d, QHttpRequest * req)
 			return;
 		}
 		headers["ETag"] = e;
+		if (req->method == "HEAD") {
+			d->write(serializeHeader(headers, status ? status : 200, 0));
+			return;
+		}
 		d->write(serializeHeader(headers, status ? status : 200, body.buffer.length()));
 		d->write(body.buffer);
 	} else if (body.type == QHttpResponseBody::File) {
@@ -204,9 +212,14 @@ void QHttpResponse::serialize(QIODevice * d, QHttpRequest * req)
 			simpleResponse(d, 500, "500 Internal Server Error");
 			return;
 		}
-		QString e = etag(body.buffer);
+		QString e = etag(file);
 		if (req->headers["If-None-Match"] == e) {
 			simpleResponse(d, 304);
+			return;
+		}
+		headers["ETag"] = e;
+		if (req->method == "HEAD") {
+			d->write(serializeHeader(headers, status ? status : 200, 0));
 			return;
 		}
 		file.open(QIODevice::ReadOnly);
