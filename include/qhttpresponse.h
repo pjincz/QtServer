@@ -25,6 +25,10 @@ public:
 	QString path;
 
 public:
+	QHttpResponseBody()
+		: type(Empty)
+	{
+	}
 	inline QHttpResponseBody & operator= (const char * str) {
 		type = Buffer;
 		buffer = str;
