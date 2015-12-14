@@ -1,14 +1,17 @@
 #include <qhttpservice.h>
 #include <qhttprequest.h>
 #include <qfiber.h>
+#include "compile_info.h"
 #include <QtCore/QtCore>
+
+static const QString HTTP_SERVER = QString("QtServer/") + QS_VERSION + " (" + QS_OS + ")";
 
 QT_BEGIN_NAMESPACE
 
 QHttpResponse::QHttpResponse()
 	: status(0)
 {
-	headers["X-Powered-By"] = "QtServer";
+	headers["Server"] = HTTP_SERVER;
 	headers["Connection"] = "keep-alive";
 }
 

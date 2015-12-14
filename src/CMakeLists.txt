@@ -11,6 +11,8 @@ set(CMAKE_AUTOMOC ON)
 #find_package(Qt5Core NO_DEFAULT_PATH)
 #find_package(Qt5Network NO_DEFAULT_PATH)
 
+configure_file(compile_info.h.in ${CMAKE_CURRENT_BINARY_DIR}/compile_info.h)
+
 set(SRCS
 	qfiber.cpp
 	qhttpservice.cpp
@@ -35,7 +37,7 @@ set(HEADERS
 	../include/qhttpapplication.h
 	)
 
-include_directories("${CMAKE_CURRENT_BINARY_DIR}/3rdparty/libcoro")
+include_directories("${CMAKE_CURRENT_BINARY_DIR}/3rdparty/libcoro" ${CMAKE_CURRENT_BINARY_DIR})
 
 add_library(QtServer STATIC ${SRCS} ${HEADERS})
 

@@ -1,0 +1,2 @@
+#define QS_VERSION "@QtServer_VERSION@"
+#define QS_OS "@CMAKE_SYSTEM_NAME@"
