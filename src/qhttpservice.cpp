@@ -90,6 +90,9 @@ protected:
 			}
 
 			QHttpResponse res;
+			if (req.protocol == "HTTP/1.0")
+				res.headers["Connection"] = "close";
+
 			QHttpContext ctx;
 			ctx.req = &req;
 			ctx.res = &res;
@@ -99,7 +102,7 @@ protected:
 
 			res.serialize(m_socket, &req);
 
-			if (req.protocol == "HTTP/1.0") {
+			if (res.headers["Connection"] != "keep-alive") {
 				flush();
 				return;
 			}

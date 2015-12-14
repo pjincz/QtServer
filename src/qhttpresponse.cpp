@@ -135,16 +135,23 @@ static QByteArray serializeHeader(QHttpHeaders & h, int status, qint64 length)
 	return r + "\r\n";
 }
 
-static void sendFile(QIODevice * d, QFile & f)
+static void sendFile(QIODevice * d, QFile & f, qint64 start, qint64 end)
 {
 	static const int MAX_BUFFER = 1024 * 1024; // 1M
 
-	while (f.bytesAvailable()) {
+	if (start)
+		f.seek(start);
+
+	qint64 remain = end - start;
+
+	while (remain) {
 		int n = MAX_BUFFER - d->bytesToWrite();
+
 		QByteArray a = f.read(n);
 		d->write(a);
+		remain -= a.length();
 
-		if (f.bytesAvailable()) {
+		if (remain) {
 			QFiber::await(d, SIGNAL(bytesWritten(qint64)));
 		}
 	}
@@ -180,6 +187,58 @@ static void simpleResponse(QIODevice * d, int status, const char * body = NULL)
 	d->write(r);
 }
 
+void serialize_file(QIODevice * d, QHttpRequest * req, QHttpResponse * res)
+{
+	QFile file(res->body.path);
+	if (!file.exists()) {
+		qWarning() << "QHttpResponse: file not exists" << res->body.path;
+		simpleResponse(d, 500, "500 Internal Server Error");
+		return;
+	}
+
+	QString e = etag(file);
+	if (req->headers["If-None-Match"] == e) {
+		simpleResponse(d, 304);
+		return;
+	}
+	res->headers["ETag"] = e;
+
+	if (req->method == "HEAD") {
+		d->write(serializeHeader(res->headers, res->status ? res->status : 200, 0));
+		return;
+	}
+
+	qint64 total = file.size();
+	qint64 start = 0;
+	qint64 end = file.size();
+
+	if (req->headers.contains("Range") && (res->status == 0 || res->status == 200)) {
+		static const QRegExp x("(\\w*)=(\\d*)-(\\d*)");
+		x.indexIn(req->headers["Range"]);
+		if (x.cap(1) == "bytes") {
+			if (!x.cap(2).isEmpty())
+				start = x.cap(2).toLongLong();
+			if (!x.cap(3).isEmpty())
+				end = x.cap(3).toLongLong() + 1;
+
+			if (end > total)
+				end = total;
+
+			if (end > start) {
+				res->headers["Content-Range"] = QString().sprintf("bytes %lld-%lld/%lld", start, end - 1, total);
+				res->status = 206;
+			} else {
+				start = 0;
+				end = total;
+			}
+		}
+	}
+
+	file.open(QIODevice::ReadOnly);
+	d->write(serializeHeader(res->headers, res->status ? res->status : 200, end - start));
+	sendFile(d, file, start, end);
+}
+
 void QHttpResponse::serialize(QIODevice * d, QHttpRequest * req)
 {
 	if (body.type == QHttpResponseBody::Empty) {
@@ -206,25 +265,7 @@ void QHttpResponse::serialize(QIODevice * d, QHttpRequest * req)
 		d->write(serializeHeader(headers, status ? status : 200, body.buffer.length()));
 		d->write(body.buffer);
 	} else if (body.type == QHttpResponseBody::File) {
-		QFile file(body.path);
-		if (!file.exists()) {
-			qWarning() << "QHttpResponse: file not exists" << body.path;
-			simpleResponse(d, 500, "500 Internal Server Error");
-			return;
-		}
-		QString e = etag(file);
-		if (req->headers["If-None-Match"] == e) {
-			simpleResponse(d, 304);
-			return;
-		}
-		headers["ETag"] = e;
-		if (req->method == "HEAD") {
-			d->write(serializeHeader(headers, status ? status : 200, 0));
-			return;
-		}
-		file.open(QIODevice::ReadOnly);
-		d->write(serializeHeader(headers, status ? status : 200, file.size()));
-		sendFile(d, file);
+		serialize_file(d, req, this);
 	} else {
 		qWarning() << "QHttpResponse: unknown body type" << body.type;
 		simpleResponse(d, 500, "500 Internal Server Error");
