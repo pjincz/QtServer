@@ -9,7 +9,6 @@ QHttpResponse::QHttpResponse()
 	: status(0)
 {
 	headers["X-Powered-By"] = "QtServer";
-	headers["Content-Type"] = "text/html; charset=utf-8";
 	headers["Connection"] = "keep-alive";
 }
 
