@@ -91,7 +91,7 @@ protected:
 
 			m_service->invoke(ctx);
 
-			res.serialize(m_socket);
+			res.serialize(m_socket, &req);
 
 			if (req.protocol == "HTTP/1.0") {
 				return;

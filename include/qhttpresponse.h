@@ -8,6 +8,7 @@
 QT_BEGIN_NAMESPACE
 
 class QIODevice;
+class QHttpRequest;
 
 class QHttpResponseBody
 {
@@ -45,7 +46,7 @@ class Q_SERVER_EXPORT QHttpResponse
 {
 public:
 	QHttpResponse();
-	void serialize(QIODevice * d);
+	void serialize(QIODevice * d, QHttpRequest * req);
 
 public:
 	QHttpHeaders headers;

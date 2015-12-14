@@ -1,4 +1,5 @@
 #include <qhttpservice.h>
+#include <qhttprequest.h>
 #include <qfiber.h>
 #include <QtCore/QtCore>
 
@@ -168,7 +169,7 @@ static void simpleResponse(QIODevice * d, int status, const char * body = NULL)
 		 "Connection: keep-alive\r\n";
 	if (body) {
 		r += "Content-Type: text/plain; charset=utf-8\r\n";
-		r += "Content-Length: " + QByteArray::number((int)strlen(body));
+		r += "Content-Length: " + QByteArray::number((int)strlen(body)) + "\r\n";
 	}
 	r += "\r\n";
 
@@ -179,7 +180,7 @@ static void simpleResponse(QIODevice * d, int status, const char * body = NULL)
 	d->write(r);
 }
 
-void QHttpResponse::serialize(QIODevice * d)
+void QHttpResponse::serialize(QIODevice * d, QHttpRequest * req)
 {
 	if (body.type == QHttpResponseBody::Empty) {
 		if (status == 0) {
@@ -188,18 +189,29 @@ void QHttpResponse::serialize(QIODevice * d)
 			d->write(serializeHeader(headers, status, 0));
 		}
 	} else if (body.type == QHttpResponseBody::Buffer) {
+		QString e = etag(body.buffer);
+		if (req->headers["If-None-Match"] == e) {
+			simpleResponse(d, 304);
+			return;
+		}
+		headers["ETag"] = e;
 		d->write(serializeHeader(headers, status ? status : 200, body.buffer.length()));
 		d->write(body.buffer);
 	} else if (body.type == QHttpResponseBody::File) {
 		QFile file(body.path);
-		if (file.exists()) {
-			file.open(QIODevice::ReadOnly);
-			d->write(serializeHeader(headers, status ? status : 200, file.size()));
-			sendFile(d, file);
-		} else {
+		if (!file.exists()) {
 			qWarning() << "QHttpResponse: file not exists" << body.path;
 			simpleResponse(d, 500, "500 Internal Server Error");
+			return;
 		}
+		QString e = etag(body.buffer);
+		if (req->headers["If-None-Match"] == e) {
+			simpleResponse(d, 304);
+			return;
+		}
+		file.open(QIODevice::ReadOnly);
+		d->write(serializeHeader(headers, status ? status : 200, file.size()));
+		sendFile(d, file);
 	} else {
 		qWarning() << "QHttpResponse: unknown body type" << body.type;
 		simpleResponse(d, 500, "500 Internal Server Error");
