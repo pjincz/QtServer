@@ -77,13 +77,17 @@ public:
 	}
 
 protected slots:
-	void terminal();
+	void terminate();
 
 protected:
 	void resume();
 
 private:
 	QFiberPrivate *d;
+};
+
+class Q_SERVER_EXPORT QFiberTerminalException : public std::exception
+{
 };
 
 QT_END_NAMESPACE

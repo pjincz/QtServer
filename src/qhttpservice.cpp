@@ -16,7 +16,7 @@ public:
 		socket->setParent(this);
 
 		QFiber * f = new QFiber(fiber_entry, QVariant::fromValue((void*)this));
-		connect(m_socket, SIGNAL(disconnected()), f, SLOT(terminal()));
+		connect(m_socket, SIGNAL(disconnected()), f, SLOT(terminate()));
 		connect(f, SIGNAL(finished()), this, SLOT(deleteLater()));
 
 		f->run();

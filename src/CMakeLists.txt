@@ -1,5 +1,8 @@
 cmake_minimum_required(VERSION 2.8.11)
 
+set(CMAKE_C_FLAGS "-g -fPIC")
+set(CMAKE_CXX_FLAGS "-g -fPIC")
+
 add_subdirectory(3rdparty)
 
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
@@ -7,8 +10,6 @@ set(CMAKE_AUTOMOC ON)
 
 #find_package(Qt5Core NO_DEFAULT_PATH)
 #find_package(Qt5Network NO_DEFAULT_PATH)
-
-set(CMAKE_CXX_FLAGS "-fPIC")
 
 set(SRCS
 	qfiber.cpp

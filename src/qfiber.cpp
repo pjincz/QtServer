@@ -2,6 +2,14 @@
 #include "3rdparty/libcoro/coro.h"
 #include <QtCore>
 
+#define DEBUG_FIBER
+//#define DEBUG_FIBER2
+
+#ifdef DEBUG_FIBER
+static int gs_fiber_count = 0;
+#endif
+
+
 QT_BEGIN_NAMESPACE
 
 class QFiberPrivate;
@@ -34,6 +42,10 @@ public:
 	// fiber -> main
 	bool out_goon;
 
+	// main -> fiber
+	bool terminating;
+	bool finished;
+
 	void reset()
 	{
 		out_goon = false;
@@ -55,11 +67,26 @@ void coro_body(void * arg)
 	{
 		d->entry(d->arg);
 	}
+	catch(QFiberTerminalException & e)
+	{
+#ifdef DEBUG_FIBER
+		qDebug() << d->q << "terminated";
+#endif
+	}
+	catch(std::exception & e)
+	{
+		qDebug() << d->q << "is terminated by uncaptured exception: " << e.what();
+	}
 	catch(...)
 	{
+		qDebug() << d->q << "is terminated by unknown exception: ";
 	}
 
 	// done
+#ifdef DEBUG_FIBER2
+	qDebug() << d->q << "fiber -> main (finish)";
+#endif
+	d->finished = true;
 	coro_transfer(&d->ctx, &global()->mainctx);
 }
 
@@ -140,7 +167,6 @@ void QAWaitAgent::achieved(void **a)
 	}
 	if (i < m_list.length()) {
 		QMetaMethod m = m_list[i].first->metaObject()->method(m_list[i].second);
-		//qDebug() << m.methodSignature();
 
 		m_result.reserve(m.parameterCount() + 1);
 		m_result << i;
@@ -176,10 +202,17 @@ void QAWaitAgent::achieved(void **a)
 
 QFiber::QFiber(FIBER_ENTRY entry, const QVariant & arg)
 {
+#ifdef DEBUG_FIBER
+	gs_fiber_count++;
+	qDebug() << this << "constructed, current:" << gs_fiber_count;
+#endif
+
 	d = new QFiberPrivate;
 	d->entry = entry;
 	d->arg = arg;
 	d->q = this;
+	d->terminating = false;
+	d->finished = false;
 	d->reset();
 	coro_stack_alloc(&d->stack, 0);
 	coro_create(&d->ctx, coro_body, d, d->stack.sptr, d->stack.ssze);
@@ -192,24 +225,32 @@ void QFiber::run()
 
 QFiber::~QFiber()
 {
+#ifdef DEBUG_FIBER
+	gs_fiber_count--;
+	qDebug() << this << "destroy, current:" << gs_fiber_count;
+#endif
+
 	coro_destroy(&d->ctx);
 	coro_stack_free(&d->stack);
 
-	// qDebug() << 111;
 	delete d;
-	// qDebug() << 222;
 }
 
 void QFiber::resume()
 {
 	QFiberGlobal * g = global();
 
+	if (d->finished) {
+		abort();
+	}
+
 	d->reset();
 	g->current = d;
+#ifdef DEBUG_FIBER2
+	qDebug() << this << "main -> fiber (resume)";
+#endif
 	coro_transfer(&g->mainctx, &d->ctx);
 	g->current = NULL;
-
-	//qDebug() << "resume" << d->out_goon;
 
 	if (!d->out_goon)
 	{
@@ -220,18 +261,23 @@ void QFiber::resume()
 
 void QFiber::await(QAWaitAgent & agent)
 {
-	//qDebug() << "await";
-
 	QFiberGlobal * g = global();
 	g->current->out_goon = true;
+#ifdef DEBUG_FIBER2
+	qDebug() << g->current->q << "fiber -> main (await)";
+#endif
 	coro_transfer(&g->current->ctx, &g->mainctx);
 
-	//qDebug() << agent.result();
+	if (g->current->terminating)
+		throw QFiberTerminalException();
 }
 
-void QFiber::terminal()
+void QFiber::terminate()
 {
-	// TODO
+	if (!d->finished) {
+		d->terminating = true;
+		resume();
+	}
 }
 
 QT_END_NAMESPACE
