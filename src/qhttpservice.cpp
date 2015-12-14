@@ -35,6 +35,12 @@ protected:
 		}
 		m_cache += m_socket->readAll();
 	}
+	void flush()
+	{
+		while (m_socket->bytesToWrite()) {
+			QFiber::await(m_socket, SIGNAL(bytesWritten(qint64)));
+		}
+	}
 	QByteArray takeHeader()
 	{
 		int x;
@@ -94,6 +100,7 @@ protected:
 			res.serialize(m_socket, &req);
 
 			if (req.protocol == "HTTP/1.0") {
+				flush();
 				return;
 			}
 		}
