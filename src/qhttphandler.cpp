@@ -22,17 +22,73 @@ int QHttpHandler::invoke(QHttpContext & ctx)
 class QHttpUrlFilter : public QHttpHandler
 {
 public:
-	QHttpUrlFilter(const char * exp)
-		: m_exp(exp)
+	QHttpUrlFilter(const char * urlexp_)
 	{
+		QString urlexp(urlexp_);
+		if (urlexp[0] == '/')
+			urlexp = urlexp.mid(1);
+		QStringList parts = urlexp.split('/');
+
+		QString regexp = "^";
+		for (int i = 0; i < parts.length(); ++i) {
+			QString part = parts[i];
+			regexp += "/";
+			if (part[0] == ':') {
+				regexp += "([^/]*)";
+				m_capNames.push_back(part.mid(1));
+			} else if (part == "*") {
+				regexp += "[^/]*";
+			} else if (part == "**") {
+				regexp += ".*";
+			} else {
+				regexp += QRegExp::escape(part);
+			}
+		}
+		m_exp = QRegExp(regexp);
 	}
-	int invoke(QHttpContext & ctx)
+	bool isInUseStatement(QHttpContext & ctx)
 	{
-		return m_exp == ctx.req->url.path() ? CONTINUE : SKIP;
+		if (ctx.chain && ctx.j < ctx.chain->length()) {
+			return ctx.chain->at(ctx.j).method == "use";
+		}
+		return false;
+	}
+	virtual int invoke(QHttpContext & ctx)
+	{
+		QString path = ctx.req->url.path();
+		bool matched = false;
+
+		if (isInUseStatement(ctx)) {
+			// only required to match start part
+			int ir = m_exp.indexIn(path, 0, QRegExp::CaretAtOffset);
+			if (ir != -1) {
+				if (path.length() == m_exp.matchedLength() || path[m_exp.matchedLength()] == '/') {
+					matched = true;
+				}
+			}
+		} else {
+			// have to match all
+			if (m_exp.exactMatch(path))
+			{
+				matched = true;
+			}
+		}
+		
+		if (matched) {
+			QHash<QString, QString> params;
+			for (int i = 0; i < m_capNames.length(); ++i) {
+				params[m_capNames[i]] = m_exp.cap(i + 1);
+			}
+			ctx.req->params = params;
+			return CONTINUE;
+		} else {
+			return SKIP;
+		}
 	}
 
 private:
-	QString m_exp;
+	QRegExp m_exp;
+	QStringList m_capNames;
 };
 
 ////////////////////////////////////////////////////////////////////////////////

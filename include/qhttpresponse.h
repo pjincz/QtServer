@@ -39,6 +39,11 @@ public:
 		buffer = rhs;
 		return *this;
 	}
+	inline QHttpResponseBody & operator= (const QString & rhs) {
+		type = Buffer;
+		buffer = rhs.toUtf8();
+		return *this;
+	}
 	inline QHttpResponseBody & setFilePath(const QString & path) {
 		type = File;
 		this->path = path;
