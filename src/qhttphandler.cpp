@@ -11,15 +11,29 @@ QHttpHandler::~QHttpHandler()
 {
 }
 
-int QHttpHandler::filter(QHttpContext &)
+int QHttpHandler::invoke(QHttpContext & ctx)
 {
-	return NOT_A_FILTER;
+	return CONTINUE;
 }
 
-void QHttpHandler::invoke(QHttpContext & ctx)
+////////////////////////////////////////////////////////////////////////////////
+// handlers
+
+class QHttpUrlFilter : public QHttpHandler
 {
-	ctx.next();
-}
+public:
+	QHttpUrlFilter(const char * exp)
+		: m_exp(exp)
+	{
+	}
+	int invoke(QHttpContext & ctx)
+	{
+		return m_exp == ctx.req->url.path() ? CONTINUE : SKIP;
+	}
+
+private:
+	QString m_exp;
+};
 
 ////////////////////////////////////////////////////////////////////////////////
 // QHttpHandlerRef
@@ -35,50 +49,7 @@ QHttpHandlerRef::QHttpHandlerRef(QHttpHandler * h)
 
 QHttpHandlerRef::QHttpHandlerRef(const char * exp)
 {
-	this->reset(new QHttpHandler_UrlFilter(exp));
-}
-
-QHttpHandlerRef::QHttpHandlerRef(FUNCTION_HANDLER_SIGN1 func)
-{
-	this->reset(new QHttpHandler_Method1(func));
-}
-
-////////////////////////////////////////////////////////////////////////////////
-// Handlers
-
-QHttpHandler_MethodFilter::QHttpHandler_MethodFilter(const char * method)
-{
-	m_method = QString::fromLatin1(method).toUpper();
-}
-
-int QHttpHandler_MethodFilter::filter(QHttpContext & ctx)
-{
-	if (ctx.req->method == "HEAD" && m_method == "GET")
-		return FILTER_THROUGH;
-	return m_method == ctx.req->method ? FILTER_THROUGH : FILTER_FILTERED;
-}
-
-
-QHttpHandler_UrlFilter::QHttpHandler_UrlFilter(const char * exp)
-	: m_urlexp(exp)
-{
-}
-
-int QHttpHandler_UrlFilter::filter(QHttpContext & ctx)
-{
-	// TODO
-	return ctx.req->url.path() == m_urlexp ? FILTER_THROUGH : FILTER_FILTERED;
-}
-
-
-QHttpHandler_Method1::QHttpHandler_Method1(FUNCTION_HANDLER_SIGN1 func)
-	: m_func(func)
-{
-}
-
-void QHttpHandler_Method1::invoke(QHttpContext & ctx)
-{
-	m_func(*ctx.req, *ctx.res);
+	this->reset(new QHttpUrlFilter(exp));
 }
 
 QT_END_NAMESPACE

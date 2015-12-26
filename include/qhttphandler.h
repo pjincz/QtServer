@@ -2,30 +2,102 @@
 #define QHTTPHANDLER_H
 
 #include "qtserverglobal.h"
+#include "qhttpcontext.h"
 #include <QSharedPointer>
+#include <functional>
 
 QT_BEGIN_NAMESPACE
 
-class QHttpContext;
 class QHttpRequest;
 class QHttpResponse;
 
-typedef void FUNCTION_HANDLER_SIGN1(QHttpRequest & req, QHttpResponse & res);
+typedef void LAMBDA_HANDLER_SIGN1(QHttpRequest & req, QHttpResponse & res);
+typedef void LAMBDA_HANDLER_SIGN2(QHttpRequest & req, QHttpResponse & res, QHttpContext & ctx);
+typedef void LAMBDA_HANDLER_SIGN3(QHttpContext & ctx);
+typedef int LAMBDA_HANDLER_SIGN4(QHttpRequest & req, QHttpResponse & res);
+typedef int LAMBDA_HANDLER_SIGN5(QHttpRequest & req, QHttpResponse & res, QHttpContext & ctx);
+typedef int LAMBDA_HANDLER_SIGN6(QHttpContext & ctx);
 
 class Q_SERVER_EXPORT QHttpHandler
 {
 public:
 	enum {
-		NOT_A_FILTER = -1,
-		FILTER_THROUGH = 0,
-		FILTER_FILTERED = 1,
+		NOOP = 0,
+		CONTINUE = 1,
+		SKIP = 2,
 	};
 public:
 	virtual ~QHttpHandler();
 
 public:
-	virtual int filter(QHttpContext & ctx);
-	virtual void invoke(QHttpContext & ctx);
+	virtual int invoke(QHttpContext & ctx);
+};
+
+template<typename T, typename _Sign>
+class QHttpHandlerLambdaWrap;
+
+template<typename T>
+class QHttpHandlerLambdaWrap<T, LAMBDA_HANDLER_SIGN1> : public QHttpHandler {
+public:
+	QHttpHandlerLambdaWrap(const T & rhs) : impl(rhs) {}
+	virtual int invoke(QHttpContext & ctx) {
+		this->impl(*ctx.req, *ctx.res);
+		return 0;
+	}
+private:
+	T impl;
+};
+template<typename T>
+class QHttpHandlerLambdaWrap<T, LAMBDA_HANDLER_SIGN2> : public QHttpHandler {
+public:
+	QHttpHandlerLambdaWrap(const T & rhs) : impl(rhs) {}
+	virtual int invoke(QHttpContext & ctx) {
+		this->impl(*ctx.req, *ctx.res, ctx);
+		return 0;
+	}
+private:
+	T impl;
+};
+template<typename T>
+class QHttpHandlerLambdaWrap<T, LAMBDA_HANDLER_SIGN3> : public QHttpHandler {
+public:
+	QHttpHandlerLambdaWrap(const T & rhs) : impl(rhs) {}
+	virtual int invoke(QHttpContext & ctx) {
+		this->impl(ctx);
+		return 0;
+	}
+private:
+	T impl;
+};
+template<typename T>
+class QHttpHandlerLambdaWrap<T, LAMBDA_HANDLER_SIGN4> : public QHttpHandler {
+public:
+	QHttpHandlerLambdaWrap(const T & rhs) : impl(rhs) {}
+	virtual int invoke(QHttpContext & ctx) {
+		return this->impl(*ctx.req, *ctx.res);
+	}
+private:
+	T impl;
+};
+template<typename T>
+class QHttpHandlerLambdaWrap<T, LAMBDA_HANDLER_SIGN5> : public QHttpHandler {
+public:
+	QHttpHandlerLambdaWrap(const T & rhs) : impl(rhs) {}
+	virtual int invoke(QHttpContext & ctx) {
+		return this->impl(*ctx.req, *ctx.res, ctx);
+	}
+private:
+	T impl;
+};
+template<typename T>
+class QHttpHandlerLambdaWrap<T, LAMBDA_HANDLER_SIGN6> : public QHttpHandler {
+public:
+	QHttpHandlerLambdaWrap(const T & rhs) : impl(rhs) {}
+	virtual int invoke(QHttpContext & ctx) {
+		return this->impl(ctx);
+	}
+private:
+	T impl;
 };
 
 class Q_SERVER_EXPORT QHttpHandlerRef : public QSharedPointer<QHttpHandler>
@@ -34,54 +106,45 @@ public:
 	QHttpHandlerRef();
 	QHttpHandlerRef(QHttpHandler * h);
 	QHttpHandlerRef(const char * path);
-	QHttpHandlerRef(FUNCTION_HANDLER_SIGN1 func);
 
-public:
-	inline int filter(QHttpContext & ctx)
-	{
-		return data()->filter(ctx);
+	template<typename T>
+	QHttpHandlerRef(const T & rhs, typename std::enable_if<std::is_convertible<T, std::function<LAMBDA_HANDLER_SIGN1>>::value>::type * dummy = 0) {
+		reset(new QHttpHandlerLambdaWrap<T, LAMBDA_HANDLER_SIGN1>(rhs));
 	}
-	inline void invoke(QHttpContext & ctx)
+	template<typename T>
+	QHttpHandlerRef(const T & rhs, typename std::enable_if<std::is_convertible<T, std::function<LAMBDA_HANDLER_SIGN2>>::value>::type * dummy = 0) {
+		reset(new QHttpHandlerLambdaWrap<T, LAMBDA_HANDLER_SIGN2>(rhs));
+	}
+	template<typename T>
+	QHttpHandlerRef(const T & rhs, typename std::enable_if<std::is_convertible<T, std::function<LAMBDA_HANDLER_SIGN3>>::value>::type * dummy = 0) {
+		reset(new QHttpHandlerLambdaWrap<T, LAMBDA_HANDLER_SIGN3>(rhs));
+	}
+	template<typename T>
+	QHttpHandlerRef(const T & rhs, typename std::enable_if<std::is_convertible<T, std::function<LAMBDA_HANDLER_SIGN4>>::value>::type * dummy = 0) {
+		reset(new QHttpHandlerLambdaWrap<T, LAMBDA_HANDLER_SIGN4>(rhs));
+	}
+	template<typename T>
+	QHttpHandlerRef(const T & rhs, typename std::enable_if<std::is_convertible<T, std::function<LAMBDA_HANDLER_SIGN5>>::value>::type * dummy = 0) {
+		reset(new QHttpHandlerLambdaWrap<T, LAMBDA_HANDLER_SIGN5>(rhs));
+	}
+	template<typename T>
+	QHttpHandlerRef(const T & rhs, typename std::enable_if<std::is_convertible<T, std::function<LAMBDA_HANDLER_SIGN6>>::value>::type * dummy = 0) {
+		reset(new QHttpHandlerLambdaWrap<T, LAMBDA_HANDLER_SIGN6>(rhs));
+	}
+
+public:
+	inline int invoke(QHttpContext & ctx)
 	{
-		data()->invoke(ctx);
+		return data()->invoke(ctx);
 	}
 };
 
-class Q_SERVER_EXPORT QHttpHandler_UrlFilter : public QHttpHandler
+class QHttpHandlerSet : public QVector<QHttpHandlerRef>
 {
 public:
-	QHttpHandler_UrlFilter(const char * exp);
-
-public:
-	virtual int filter(QHttpContext & ctx);
-
-private:
-	QString m_urlexp;
+	QString method;
 };
-
-class Q_SERVER_EXPORT QHttpHandler_MethodFilter : public QHttpHandler
-{
-public:
-	QHttpHandler_MethodFilter(const char * method);
-
-public:
-	virtual int filter(QHttpContext & ctx);
-
-private:
-	QString m_method;
-};
-
-class Q_SERVER_EXPORT QHttpHandler_Method1 : public QHttpHandler
-{
-public:
-	QHttpHandler_Method1(FUNCTION_HANDLER_SIGN1 func);
-
-public:
-	virtual void invoke(QHttpContext & ctx);
-
-private:
-	FUNCTION_HANDLER_SIGN1 * m_func;
-};
+typedef QVector<QHttpHandlerSet> QHttpHandlerSetChain;
 
 QT_END_NAMESPACE
 

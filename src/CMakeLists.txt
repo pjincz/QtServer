@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 2.8.11)
 
 set(CMAKE_C_FLAGS "-g -fPIC")
-set(CMAKE_CXX_FLAGS "-g -fPIC")
+set(CMAKE_CXX_FLAGS "-std=c++11 -g -fPIC")
 
 add_subdirectory(3rdparty)
 

@@ -3,18 +3,45 @@
 
 QT_BEGIN_NAMESPACE
 
+class QHttpMethodFilter : public QHttpHandler
+{
+public:
+	QHttpMethodFilter(const char * method) 
+	{
+		this->method = QString(method).toUpper();
+	}
+
+	virtual int invoke(QHttpContext & ctx)
+	{
+		if (ctx.req->method == method)
+			return QHttpHandler::CONTINUE;
+		if (ctx.req->method == "HEAD" && method == "GET")
+			return QHttpHandler::CONTINUE;
+		return QHttpHandler::SKIP;
+	}
+
+private:
+	QString method;
+};
+
 QHttpRouter::QHttpRouter(QObject * parent)
 	: QObject(parent)
 {
 }
 
-void QHttpRouter::use(QHttpHandlerRef h0, QHttpHandlerRef h1,
-					  QHttpHandlerRef h2, QHttpHandlerRef h3, 
-					  QHttpHandlerRef h4, QHttpHandlerRef h5,
-					  QHttpHandlerRef h6, QHttpHandlerRef h7,
-					  QHttpHandlerRef h8)
+void QHttpRouter::handle(const char * method,
+						QHttpHandlerRef h0, QHttpHandlerRef h1,
+						QHttpHandlerRef h2, QHttpHandlerRef h3, 
+						QHttpHandlerRef h4, QHttpHandlerRef h5,
+						QHttpHandlerRef h6, QHttpHandlerRef h7)
 {
 	QHttpHandlerSet s;
+	s.method = method;
+
+	if (strcmp(method, "use") != 0 && strcmp(method, "all") != 0) {
+		s.push_back(QHttpHandlerRef(new QHttpMethodFilter(method)));
+	}
+
 	if (!h0.isNull()) s.push_back(h0);
 	if (!h1.isNull()) s.push_back(h1);
 	if (!h2.isNull()) s.push_back(h2);
@@ -23,12 +50,11 @@ void QHttpRouter::use(QHttpHandlerRef h0, QHttpHandlerRef h1,
 	if (!h5.isNull()) s.push_back(h5);
 	if (!h6.isNull()) s.push_back(h6);
 	if (!h7.isNull()) s.push_back(h7);
-	if (!h8.isNull()) s.push_back(h8);
 
 	m_hsc.push_back(s);
 }
 
-void QHttpRouter::invoke(QHttpContext & ctx)
+int QHttpRouter::invoke(QHttpContext & ctx)
 {
 	QHttpContext ctx2;
 	ctx2.req = ctx.req;
@@ -44,6 +70,8 @@ void QHttpRouter::invoke(QHttpContext & ctx)
 	ctx2.chain = &m_hsc;
 
 	ctx2.next();
+
+	return 0;
 }
 
 QT_END_NAMESPACE
