@@ -24,8 +24,7 @@ private:
 	QString method;
 };
 
-QHttpRouter::QHttpRouter(QObject * parent)
-	: QObject(parent)
+QHttpRouter::QHttpRouter()
 {
 }
 
@@ -59,7 +58,7 @@ int QHttpRouter::invoke(QHttpContext & ctx)
 	QHttpContext ctx2;
 	ctx2.req = ctx.req;
 	ctx2.res = ctx.res;
-	if (QHttpService * s = qobject_cast<QHttpService *>(this))
+	if (QHttpService * s = dynamic_cast<QHttpService *>(this))
 	{
 		ctx2.service = s;
 	}

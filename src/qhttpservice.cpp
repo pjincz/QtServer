@@ -116,7 +116,7 @@ private:
 };
 
 QHttpService::QHttpService(QObject * parent)
-	: QHttpRouter(parent)
+	: QObject(parent)
 {
 }
 

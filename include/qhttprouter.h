@@ -20,11 +20,10 @@ QT_BEGIN_NAMESPACE
 	}
 
 
-class Q_SERVER_EXPORT QHttpRouter : public QObject, QHttpHandler
+class Q_SERVER_EXPORT QHttpRouter : public QHttpHandler
 {
-	Q_OBJECT
 public:
-	QHttpRouter(QObject * parent = 0);
+	QHttpRouter();
 
 public:
 	// specific handler set
