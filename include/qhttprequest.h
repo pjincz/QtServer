@@ -8,6 +8,14 @@
 
 QT_BEGIN_NAMESPACE
 
+class Q_SERVER_EXPORT QHttpRequestQuery : public QMultiHash<QString, QString>
+{
+public:
+	QString operator[](const QString & key) {
+		return this->value(key);
+	}
+};
+
 class Q_SERVER_EXPORT QHttpRequest
 {
 public:
@@ -22,6 +30,7 @@ public:
 	QByteArray body;
 
 	QHash<QString, QString> params;
+	QHttpRequestQuery query;
 };
 
 QT_END_NAMESPACE

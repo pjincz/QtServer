@@ -1,5 +1,6 @@
 #include <qhttpservice.h>
 #include <QStringList>
+#include <QUrlQuery>
 
 QT_BEGIN_NAMESPACE
 
@@ -9,8 +10,6 @@ QHttpRequest::QHttpRequest()
 
 void QHttpRequest::parse(const QByteArray & a)
 {
-	headers.clear();
-
 	QString str = QString::fromLatin1(a);
 	QStringList lines;
 
@@ -39,6 +38,11 @@ void QHttpRequest::parse(const QByteArray & a)
 	this->method = first_line[0].toUpper();
 	this->url = first_line[1];
 	this->protocol = first_line[2];
+
+	typedef QPair<QString, QString> QPair_String_String;
+	foreach (QPair_String_String x, QUrlQuery(this->url).queryItems()) {
+		this->query.insert(x.first, x.second);
+	}
 
 	for (int i = 1; i < lines.length(); ++i)
 	{
