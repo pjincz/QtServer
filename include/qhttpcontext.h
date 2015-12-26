@@ -30,6 +30,9 @@ public:
 
 	const QHttpHandlerSetChain * chain;
 	int i, j;
+
+	int url_shift;
+	int base_url_shift;
 };
 
 QT_END_NAMESPACE

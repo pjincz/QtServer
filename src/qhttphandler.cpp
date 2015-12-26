@@ -60,15 +60,16 @@ public:
 
 		if (isInUseStatement(ctx)) {
 			// only required to match start part
-			int ir = m_exp.indexIn(path, 0, QRegExp::CaretAtOffset);
+			int ir = m_exp.indexIn(path, ctx.url_shift, QRegExp::CaretAtOffset);
 			if (ir != -1) {
-				if (path.length() == m_exp.matchedLength() || path[m_exp.matchedLength()] == '/') {
+				if (path.length() - ctx.url_shift == m_exp.matchedLength() 
+						|| path[ctx.url_shift + m_exp.matchedLength()] == '/') {
 					matched = true;
 				}
 			}
 		} else {
 			// have to match all
-			if (m_exp.exactMatch(path))
+			if (m_exp.exactMatch(path.mid(ctx.url_shift)))
 			{
 				matched = true;
 			}
@@ -80,6 +81,7 @@ public:
 				params[m_capNames[i]] = m_exp.cap(i + 1);
 			}
 			ctx.req->params = params;
+			ctx.url_shift += m_exp.matchedLength();
 			return CONTINUE;
 		} else {
 			return SKIP;

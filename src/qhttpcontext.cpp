@@ -5,16 +5,46 @@ QT_BEGIN_NAMESPACE
 
 QHttpContext::QHttpContext()
 	: req(0), res(0), service(0), parent(0), chain(0), i(0), j(0)
+	, url_shift(0), base_url_shift(0)
 {
 }
 
 QHttpContext::QHttpContext(QHttpContext * parent)
 	: req(parent->req), res(parent->res), service(parent->service), parent(parent), chain(0), i(0), j(0)
+	, url_shift(parent->url_shift), base_url_shift(parent->url_shift)
 {
+}
+
+class QHttpContextBackup
+{
+public:
+	QHttpContextBackup(QHttpContext & ctx)
+		: ctx(ctx)
+	{
+		url_shift = ctx.url_shift;
+		req_params = ctx.req->params;
+	}
+	~QHttpContextBackup()
+	{
+		ctx.req->params = req_params;
+		ctx.url_shift = url_shift;
+	}
+
+	QHttpContext & ctx;
+	int url_shift;
+	QHash<QString, QString> req_params;
+};
+
+void reset_handler_set_var(QHttpContext & ctx)
+{
+	ctx.url_shift = ctx.base_url_shift;
+	ctx.req->params = QHash<QString, QString>();
 }
 
 void QHttpContext::next()
 {
+	QHttpContextBackup backup(*this);
+
 	if (!chain) {
 		if (parent)
 			parent->next();
@@ -37,6 +67,7 @@ void QHttpContext::next()
 		if (j >= chain->at(i).length()) {
 			j = 0;
 			++i;
+			reset_handler_set_var(*this);
 			continue;
 		}
 		// deal normal case
@@ -66,6 +97,7 @@ void QHttpContext::next()
 			}
 			++i;
 			j = 0;
+			reset_handler_set_var(*this);
 			continue;
 		} else {
 			qWarning() << h << "bad return value!";
