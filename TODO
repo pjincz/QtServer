@@ -1,5 +1,3 @@
-colorful debug output
-
 clean QFiber global variant usage
 
 fixup: Fiber finished should not via exception

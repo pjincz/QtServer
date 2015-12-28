@@ -107,16 +107,24 @@ public:
 	QHttpHandlerRef(QHttpHandler * h);
 	QHttpHandlerRef(const char * path);
 
+	// TODO: use a stupid way to walk around int(...) can be converted to void(...)
+	// Need a better way, this really ugly...
 	template<typename T>
-	QHttpHandlerRef(const T & rhs, typename std::enable_if<std::is_convertible<T, std::function<LAMBDA_HANDLER_SIGN1>>::value>::type * dummy = 0) {
+	QHttpHandlerRef(const T & rhs, 
+			typename std::enable_if<std::is_convertible<T, std::function<LAMBDA_HANDLER_SIGN1>>::value>::type * dummy = 0,
+			typename std::enable_if<!std::is_convertible<T, std::function<LAMBDA_HANDLER_SIGN4>>::value>::type * dummy2 = 0) {
 		reset(new QHttpHandlerLambdaWrap<T, LAMBDA_HANDLER_SIGN1>(rhs));
 	}
 	template<typename T>
-	QHttpHandlerRef(const T & rhs, typename std::enable_if<std::is_convertible<T, std::function<LAMBDA_HANDLER_SIGN2>>::value>::type * dummy = 0) {
+	QHttpHandlerRef(const T & rhs, 
+			typename std::enable_if<std::is_convertible<T, std::function<LAMBDA_HANDLER_SIGN2>>::value>::type * dummy = 0,
+			typename std::enable_if<!std::is_convertible<T, std::function<LAMBDA_HANDLER_SIGN5>>::value>::type * dummy2 = 0) {
 		reset(new QHttpHandlerLambdaWrap<T, LAMBDA_HANDLER_SIGN2>(rhs));
 	}
 	template<typename T>
-	QHttpHandlerRef(const T & rhs, typename std::enable_if<std::is_convertible<T, std::function<LAMBDA_HANDLER_SIGN3>>::value>::type * dummy = 0) {
+	QHttpHandlerRef(const T & rhs, 
+			typename std::enable_if<std::is_convertible<T, std::function<LAMBDA_HANDLER_SIGN3>>::value>::type * dummy = 0,
+			typename std::enable_if<!std::is_convertible<T, std::function<LAMBDA_HANDLER_SIGN6>>::value>::type * dummy2 = 0) {
 		reset(new QHttpHandlerLambdaWrap<T, LAMBDA_HANDLER_SIGN3>(rhs));
 	}
 	template<typename T>
