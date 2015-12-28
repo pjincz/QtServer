@@ -1,12 +1,12 @@
+colorful debug output
+
 clean QFiber global variant usage
+
+fixup: Fiber finished should not via exception
 
 Content-Type guess support
 
 cache-control support
-
-implement complex match ruler
-
-post
 
 deal error on connection
 
@@ -15,8 +15,6 @@ ssl
 cmake build system
 package manager
 
-parse query
 parse body
-parse match
 
 backtrace support

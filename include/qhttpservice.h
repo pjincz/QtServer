@@ -12,7 +12,7 @@ class Q_SERVER_EXPORT QHttpService : public QObject, public QHttpRouter
 public:
 	QHttpService(QObject * parent = 0);
 
-	void listen(int port);
+	bool listen(int port, bool abort_if_failed = true);
 
 protected slots:
 	void onNewConnection();

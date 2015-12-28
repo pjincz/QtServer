@@ -120,11 +120,18 @@ QHttpService::QHttpService(QObject * parent)
 {
 }
 
-void QHttpService::listen(int port)
+bool QHttpService::listen(int port, bool abort_if_failed)
 {
 	QTcpServer * x = new QTcpServer(this);
 	connect(x, SIGNAL(newConnection()), this, SLOT(onNewConnection()));
-	x->listen(QHostAddress::Any, 3000);
+	if (!x->listen(QHostAddress::Any, port)) {
+		qCritical() << "listen port" << port << "failed:" << x->errorString();
+		if (abort_if_failed) {
+			exit(1);
+		}
+		return false;
+	}
+	return true;
 }
 
 void QHttpService::onNewConnection()

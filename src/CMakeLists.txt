@@ -22,6 +22,7 @@ set(SRCS
 	qhttprouter.cpp
 	qhttphandler.cpp
 	qhttpapplication.cpp
+	_mime.cpp
 	)
 set(HEADERS
 	../include/qtserverglobal.h

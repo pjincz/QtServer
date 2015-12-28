@@ -4,6 +4,8 @@
 #include "compile_info.h"
 #include <QtCore/QtCore>
 
+QString get_mime_type(const QString & str);
+
 static const QString HTTP_SERVER = QString("QtServer/") + QS_VERSION + " (" + QS_OS + ")";
 
 QT_BEGIN_NAMESPACE
@@ -210,6 +212,13 @@ void serialize_file(QIODevice * d, QHttpRequest * req, QHttpResponse * res)
 		return;
 	}
 
+	if (res->headers["Content-Type"].isNull()) {
+		QFileInfo fi(file);
+		QString suffix = fi.suffix();
+		QString mime = get_mime_type(suffix);
+		res->headers["Content-Type"] = mime;
+	}
+
 	qint64 total = file.size();
 	qint64 start = 0;
 	qint64 end = file.size();
@@ -264,6 +273,8 @@ void QHttpResponse::serialize(QIODevice * d, QHttpRequest * req)
 			d->write(serializeHeader(headers, status ? status : 200, 0));
 			return;
 		}
+		if (headers["Content-Type"].isNull())
+			headers["Content-Type"] = "text/html; charset=UTF-8";
 		d->write(serializeHeader(headers, status ? status : 200, body.buffer.length()));
 		d->write(body.buffer);
 	} else if (body.type == QHttpResponseBody::File) {
