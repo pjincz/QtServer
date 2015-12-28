@@ -55,16 +55,10 @@ void QHttpRouter::handle(const char * method,
 
 int QHttpRouter::invoke(QHttpContext & ctx)
 {
-	QHttpContext ctx2;
-	ctx2.req = ctx.req;
-	ctx2.res = ctx.res;
+	QHttpContext ctx2(&ctx);
 	if (QHttpService * s = dynamic_cast<QHttpService *>(this))
 	{
 		ctx2.service = s;
-	}
-	else
-	{
-		ctx2.service = ctx.service;
 	}
 	ctx2.chain = &m_hsc;
 

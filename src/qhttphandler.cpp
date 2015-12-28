@@ -48,8 +48,8 @@ public:
 	}
 	bool isInUseStatement(QHttpContext & ctx)
 	{
-		if (ctx.chain && ctx.j < ctx.chain->length()) {
-			return ctx.chain->at(ctx.j).method == "use";
+		if (ctx.chain && ctx.i < ctx.chain->length()) {
+			return ctx.chain->at(ctx.i).method == "use";
 		}
 		return false;
 	}

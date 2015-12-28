@@ -128,16 +128,26 @@ public:
 		reset(new QHttpHandlerLambdaWrap<T, LAMBDA_HANDLER_SIGN3>(rhs));
 	}
 	template<typename T>
-	QHttpHandlerRef(const T & rhs, typename std::enable_if<std::is_convertible<T, std::function<LAMBDA_HANDLER_SIGN4>>::value>::type * dummy = 0) {
+	QHttpHandlerRef(const T & rhs, 
+			typename std::enable_if<std::is_convertible<T, std::function<LAMBDA_HANDLER_SIGN4>>::value>::type * dummy = 0) {
 		reset(new QHttpHandlerLambdaWrap<T, LAMBDA_HANDLER_SIGN4>(rhs));
 	}
 	template<typename T>
-	QHttpHandlerRef(const T & rhs, typename std::enable_if<std::is_convertible<T, std::function<LAMBDA_HANDLER_SIGN5>>::value>::type * dummy = 0) {
+	QHttpHandlerRef(const T & rhs, 
+			typename std::enable_if<std::is_convertible<T, std::function<LAMBDA_HANDLER_SIGN5>>::value>::type * dummy = 0) {
 		reset(new QHttpHandlerLambdaWrap<T, LAMBDA_HANDLER_SIGN5>(rhs));
 	}
 	template<typename T>
-	QHttpHandlerRef(const T & rhs, typename std::enable_if<std::is_convertible<T, std::function<LAMBDA_HANDLER_SIGN6>>::value>::type * dummy = 0) {
+	QHttpHandlerRef(const T & rhs, 
+			typename std::enable_if<std::is_convertible<T, std::function<LAMBDA_HANDLER_SIGN6>>::value>::type * dummy = 0) {
 		reset(new QHttpHandlerLambdaWrap<T, LAMBDA_HANDLER_SIGN6>(rhs));
+	}
+
+	template<typename T>
+	QHttpHandlerRef(const T & rhs,
+			typename std::enable_if<std::is_base_of<QHttpHandler, T>::value>::type * dummy = 0) {
+		static_assert(std::is_copy_constructible<T>::value, "Cannot move Object from Stack to heap, Object is not copyable");
+		reset(new T(rhs));
 	}
 
 public:
