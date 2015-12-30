@@ -6,9 +6,15 @@
 #include <QSharedPointer>
 #include <functional>
 
+#ifndef QS_GET_MACRO3
+#define QS_GET_MACRO3(_1, _2, _3, NAME, ...) NAME
+#endif
+
 #ifndef QS_LAMBDA
-#define QS_LAMBDA(req, res, ctx)\
-	[=](QHttpRequest & req, QHttpResponse & res, QHttpContext & ctx)
+#define QS_LAMBDA1(ctx) [=](QHttpContext & ctx)
+#define QS_LAMBDA2(req, res) [=](QHttpRequest & req, QHttpResponse & res)
+#define QS_LAMBDA3(req, res, ctx) [=](QHttpRequest & req, QHttpResponse & res, QHttpContext & ctx)
+#define QS_LAMBDA(...) QS_GET_MACRO3(__VA_ARGS__, QS_LAMBDA3, QS_LAMBDA2, QS_LAMBDA1)(__VA_ARGS__)
 #endif
 
 QT_BEGIN_NAMESPACE
