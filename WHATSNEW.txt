@@ -1,0 +1,34 @@
+v0.0.3
+	cgi support
+	replace QRegExp -> QRegularExpression
+	? Fiber Pool
+
+v0.0.2
+	advanced router rule support
+		url params support
+		* support
+		** support
+		nested router support
+		subapp support
+	enhanced lambda support
+	move object from stack to heap support
+	colorful log support
+	auto mime guess
+	abort-if-listen-failed support
+	POST support
+
+v0.0.1
+	!! implement a static file service
+	fiber support
+		await support
+	plain response support
+		ETag
+	file response support
+		ETag
+		http 206
+	http 1.0/1.1 support
+	method HEAD/GET support
+	static link support
+	qsm
+		init
+		make
