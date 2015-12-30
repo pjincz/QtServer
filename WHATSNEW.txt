@@ -1,6 +1,7 @@
 v0.0.3
-	cgi support
-	replace QRegExp -> QRegularExpression
+	add macro QS_LAMBDA
+	- cgi support
+	- replace QRegExp -> QRegularExpression
 	? Fiber Pool
 
 v0.0.2

@@ -6,6 +6,11 @@
 #include <QSharedPointer>
 #include <functional>
 
+#ifndef QS_LAMBDA
+#define QS_LAMBDA(req, res, ctx)\
+	[=](QHttpRequest & req, QHttpResponse & res, QHttpContext & ctx)
+#endif
+
 QT_BEGIN_NAMESPACE
 
 class QHttpRequest;
