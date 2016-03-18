@@ -1,5 +1,6 @@
 v0.0.3
 	add macro QS_LAMBDA
+	- windows support
 	- cgi support
 	- replace QRegExp -> QRegularExpression
 	? Fiber Pool
